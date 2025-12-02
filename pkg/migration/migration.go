@@ -3,6 +3,7 @@ package migration
 import (
 	"api_concurrencia/src/models"
 	"log"
+
 	"gorm.io/gorm"
 )
 
@@ -12,6 +13,8 @@ func AutoMigrateTables(db *gorm.DB) {
 		&models.ProgramaEstudio{},
 		&models.Cuatrimestre{},
 		&models.Asignatura{},
+		&models.Docente{},
+		&models.Grupo{},
 		&models.Usuario{},
 		&models.Matricula{},
 	)
