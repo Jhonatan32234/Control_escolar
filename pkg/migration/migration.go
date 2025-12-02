@@ -14,6 +14,7 @@ func AutoMigrateTables(db *gorm.DB) {
 		&models.Asignatura{},
 		&models.Usuario{},
 		&models.Matricula{},
+		&models.Grupo{},
 	)
 
 	if err != nil {

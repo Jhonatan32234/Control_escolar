@@ -49,3 +49,15 @@ func (r *UsuarioRepository) GetUnsyncedByRole(role string) ([]models.Usuario, er
 	err := r.DB.Where("id_moodle IS NULL AND rol = ?", role).Find(&usuarios).Error
 	return usuarios, err
 }
+
+
+// GetByGroupID obtiene todos los Usuarios que pertenecen a un Grupo.
+func (r *UsuarioRepository) GetByGroupID(grupoID uint) ([]models.Usuario, error) {
+    var usuarios []models.Usuario
+    // Une implícitamente con la tabla de unión 'usuario_grupos'
+    err := r.DB.
+        Joins("JOIN usuario_grupos ug ON ug.usuario_id = usuarios.id").
+        Where("ug.grupo_id = ?", grupoID).
+        Find(&usuarios).Error
+    return usuarios, err
+}

@@ -31,8 +31,13 @@ func Routes(db *gorm.DB, moodleClient *moodle.Client) *chi.Mux {
 	
 	// --- USUARIO ---
 	uRepo := repository.NewUsuarioRepository(db)
-	uService := services.NewUsuarioService(uRepo)
+	uService := services.NewUsuarioService(uRepo, moodleClient, aRepo)
 	uHandler := NewUsuarioHandler(uService)
+
+	// --- GRUPO ---
+	gRepo := repository.NewGrupoRepository(db)
+	gService := services.NewGrupoService(gRepo, moodleClient, aRepo, uRepo)
+	gHandler := NewGrupoHandler(gService)
 
 	r.Route("/programa-estudio", func(r chi.Router) {
 		r.Post("/", peHandler.CreateProgramaEstudio)
@@ -72,12 +77,28 @@ func Routes(db *gorm.DB, moodleClient *moodle.Client) *chi.Mux {
 		r.Get("/", uHandler.GetAllUsuarios) 
 		r.Post("/sync/{id}", uHandler.SyncUsuario)
 		r.Post("/bulk-sync", uHandler.BulkSyncUsuarios) // RUTA MASIVA
-		
+		r.Post("/enrol/{usuarioID}/{asignaturaID}", uHandler.MatricularUsuario)
 		r.Route("/{id}", func(r chi.Router) {
 			r.Get("/", uHandler.GetUsuarioByID) 
 			r.Put("/", uHandler.UpdateUsuario)   
 			r.Delete("/", uHandler.DeleteUsuario)
 		})
 	})
+
+
+	r.Route("/grupo", func(r chi.Router) {
+		r.Post("/", gHandler.CreateGrupo) 
+		r.Get("/", gHandler.GetAllGrupo)
+		r.Post("/sync/{id}",gHandler.SyncGrupo)
+		r.Post("/add-members/{grupoID}", gHandler.AddMembersToGroup) 
+		r.Route("/{id}", func(r chi.Router) {
+			r.Get("/", gHandler.GetGrupoByID) 
+			r.Put("/", gHandler.UpdateGrupo)   
+			r.Delete("/", gHandler.DeleteGrupo)
+		})
+	})
+
+
+
 	return r
 }
