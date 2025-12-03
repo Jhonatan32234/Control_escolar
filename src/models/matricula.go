@@ -1,19 +1,25 @@
 package models
 
-// Matricula representa la relación de enrolamiento (Grupo Alumno).
-// No usaremos gorm.Model aquí ya que es una tabla intermedia, pero mantenemos un ID.
+// Matricula representa la relación de enrolamiento (Usuario - Asignatura - Rol).
 type Matricula struct {
-	ID             uint `gorm:"primaryKey"`
+	ID uint `gorm:"primaryKey"`
 
-    // FKs Locales (Opcional, pero útil para GORM)
-	AsignaturaID   uint  `json:"asignatura_id"`
-	UsuarioID      uint  `json:"usuario_id"`
-    
-    // Datos de Moodle (Claves foráneas lógicas, no de BD)
-	CourseMoodleID uint  `gorm:"not null;uniqueIndex:idx_unique_enrollment" json:"course_moodle_id"` // <-- Campo 1 con la definición del índice
-	UserMoodleID   uint  `gorm:"not null;uniqueIndex:idx_unique_enrollment" json:"user_moodle_id"` // <-- Campo 2, usa el MISMO nombre
-	RoleID         uint  `gorm:"not null" json:"role_id"` 
-	Timestart      *int64 `json:"timestart"`
-	Timeend        *int64 `json:"timeend"`
-    
+	// 🛑 FKs Locales (RELACIONES)
+	AsignaturaID uint `gorm:"not null" json:"asignatura_id"`
+	// Relación 1: Perteneciente a una Asignatura
+	Asignatura Asignatura `gorm:"foreignKey:AsignaturaID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT;"`
+
+	UsuarioID uint `gorm:"not null" json:"usuario_id"`
+	// Relación 2: Perteneciente a un Usuario (Docente/Alumno)
+	Usuario Usuario `gorm:"foreignKey:UsuarioID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT;"`
+
+	// Datos de Moodle (Claves de sincronización)
+	// Creamos un índice único compuesto para evitar dobles enrolamientos.
+	CourseMoodleID uint `gorm:"not null;uniqueIndex:idx_unique_enrollment" json:"course_moodle_id"`
+	UserMoodleID   uint `gorm:"not null;uniqueIndex:idx_unique_enrollment" json:"user_moodle_id"`
+	RoleID         uint `gorm:"not null" json:"role_id"` // 5=Estudiante, 3=Docente
+
+	// Tiempos de enrolamiento
+	Timestart *int64 `json:"timestart"`
+	Timeend   *int64 `json:"timeend"`
 }

@@ -14,6 +14,7 @@ type Usuario struct {
     Rol         string `gorm:"type:varchar(50);not null" json:"rol"`             // 'Docente' o 'Alumno'
     ID_Moodle   *uint  `gorm:"unique" json:"id_moodle"`                         // ID devuelto por Moodle
     
+    Matriculas []Matricula `gorm:"foreignKey:UsuarioID" json:"matriculas,omitempty"`
     // Relación Many-to-Many con Grupos
     Grupos      []Grupo `gorm:"many2many:usuario_grupos;" json:"grupos,omitempty"` // 👈 NUEVO CAMPO DE RELACIÓN
 }
