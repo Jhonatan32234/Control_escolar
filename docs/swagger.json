@@ -1,0 +1,867 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API para gestión de Programa de Estudio, Cuatrimestres, Asignaturas, Usuarios y Grupos con sincronización a Moodle.",
+        "title": "Control Escolar API",
+        "contact": {},
+        "version": "2.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/asignatura/": {
+            "get": {
+                "description": "Obtiene todas las asignaturas",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "asignatura"
+                ],
+                "summary": "Listar Asignaturas",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Asignatura"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Crea una asignatura local",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "asignatura"
+                ],
+                "summary": "Crear Asignatura",
+                "parameters": [
+                    {
+                        "description": "Datos de la asignatura",
+                        "name": "asignatura",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Asignatura"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Asignatura"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/asignatura/sync/{id}": {
+            "post": {
+                "description": "Inicia la sincronización de una asignatura a Moodle",
+                "tags": [
+                    "asignatura"
+                ],
+                "summary": "Sincronizar Asignatura",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID de la asignatura",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/asignatura/{id}/": {
+            "get": {
+                "description": "Obtiene una asignatura por ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "asignatura"
+                ],
+                "summary": "Obtener Asignatura",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID de la asignatura",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Asignatura"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Actualiza una asignatura por ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "asignatura"
+                ],
+                "summary": "Actualizar Asignatura",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID de la asignatura",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Datos de la asignatura",
+                        "name": "asignatura",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Asignatura"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Asignatura"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Elimina una asignatura por ID",
+                "tags": [
+                    "asignatura"
+                ],
+                "summary": "Eliminar Asignatura",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID de la asignatura",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/cuatrimestre/": {
+            "get": {
+                "description": "Obtiene todos los cuatrimestres",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cuatrimestre"
+                ],
+                "summary": "Listar Cuatrimestres",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Cuatrimestre"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Crea un cuatrimestre local",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cuatrimestre"
+                ],
+                "summary": "Crear Cuatrimestre",
+                "parameters": [
+                    {
+                        "description": "Datos del cuatrimestre",
+                        "name": "cuatrimestre",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Cuatrimestre"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Cuatrimestre"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/cuatrimestre/sync/{id}": {
+            "post": {
+                "description": "Inicia la sincronización del cuatrimestre a Moodle",
+                "tags": [
+                    "cuatrimestre"
+                ],
+                "summary": "Sincronizar Cuatrimestre",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID del cuatrimestre",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/cuatrimestre/{id}/": {
+            "get": {
+                "description": "Obtiene un cuatrimestre por ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cuatrimestre"
+                ],
+                "summary": "Obtener Cuatrimestre",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID del cuatrimestre",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Cuatrimestre"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Actualiza un cuatrimestre por ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cuatrimestre"
+                ],
+                "summary": "Actualizar Cuatrimestre",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID del cuatrimestre",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Datos del cuatrimestre",
+                        "name": "cuatrimestre",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Cuatrimestre"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Cuatrimestre"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Elimina un cuatrimestre por ID",
+                "tags": [
+                    "cuatrimestre"
+                ],
+                "summary": "Eliminar Cuatrimestre",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID del cuatrimestre",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/grupo/": {
+            "get": {
+                "description": "Obtiene todos los grupos",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "grupo"
+                ],
+                "summary": "Listar Grupos",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Grupo"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Crea un grupo local",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "grupo"
+                ],
+                "summary": "Crear Grupo",
+                "parameters": [
+                    {
+                        "description": "Datos del grupo",
+                        "name": "grupo",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Grupo"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Grupo"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/grupo/add-members/{grupoID}": {
+            "post": {
+                "description": "Añade miembros al grupo y sincroniza con Moodle",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "grupo"
+                ],
+                "summary": "Añadir Miembros a Grupo",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID del grupo",
+                        "name": "grupoID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "IDs de usuarios",
+                        "name": "usuarios",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/grupo/sync/{id}": {
+            "post": {
+                "description": "Inicia la sincronización del grupo a Moodle",
+                "tags": [
+                    "grupo"
+                ],
+                "summary": "Sincronizar Grupo",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID del grupo",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/grupo/{id}/": {
+            "get": {
+                "description": "Obtiene un grupo por ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "grupo"
+                ],
+                "summary": "Obtener Grupo",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID del grupo",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Grupo"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Actualiza un grupo por ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "grupo"
+                ],
+                "summary": "Actualizar Grupo",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID del grupo",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Datos del grupo",
+                        "name": "grupo",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Grupo"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Grupo"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Elimina un grupo por ID",
+                "tags": [
+                    "grupo"
+                ],
+                "summary": "Eliminar Grupo",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID del grupo",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.Asignatura": {
+            "description": "Modelo de Asignatura (Curso) utilizado en la API y sincronizado con Moodle.",
+            "type": "object",
+            "properties": {
+                "cuatrimestre_id": {
+                    "description": "Relación de Pertenencia (Clave Foránea)",
+                    "type": "integer",
+                    "example": 5
+                },
+                "id_externo": {
+                    "description": "Moodle: idnumber",
+                    "type": "string",
+                    "example": "ASIG-POO1-2025"
+                },
+                "id_moodle": {
+                    "description": "Sincronización con Moodle",
+                    "type": "integer",
+                    "example": 1234
+                },
+                "nombre_completo": {
+                    "description": "Datos del Curso (Obligatorios para Moodle)",
+                    "type": "string",
+                    "example": "Programación Orientada a Objetos I"
+                },
+                "nombre_corto": {
+                    "description": "Moodle: shortname",
+                    "type": "string",
+                    "example": "POO1-2025-A"
+                },
+                "resumen": {
+                    "description": "Información adicional (Opcional)",
+                    "type": "string",
+                    "example": "Curso introductorio de programación orientada a objetos que cubre conceptos fundamentales como clases, objetos, herencia y polimorfismo."
+                }
+            }
+        },
+        "models.Cuatrimestre": {
+            "description": "Modelo de Cuatrimestre utilizado en la API y sincronizado como subcategoría en Moodle.",
+            "type": "object",
+            "properties": {
+                "descripcion": {
+                    "type": "string",
+                    "example": "Cuatrimestre correspondiente al periodo enero-abril 2025"
+                },
+                "id_externo": {
+                    "type": "string",
+                    "example": "CUATR-2025-01"
+                },
+                "id_moodle": {
+                    "type": "integer",
+                    "example": 5678
+                },
+                "nombre": {
+                    "type": "string",
+                    "example": "Primer Cuatrimestre 2025"
+                },
+                "programa_estudio_id": {
+                    "description": "Campo de la Clave Foránea",
+                    "type": "integer",
+                    "example": 3
+                }
+            }
+        },
+        "models.Grupo": {
+            "description": "Modelo de Grupo utilizado en la API y sincronizado con Moodle.",
+            "type": "object",
+            "properties": {
+                "course_id": {
+                    "description": "ID de la Asignatura/Curso local",
+                    "type": "integer",
+                    "example": 12
+                },
+                "description": {
+                    "type": "string",
+                    "example": "Grupo de clases matutinas para el curso de Programación"
+                },
+                "descriptionformat": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "id_moodle": {
+                    "description": "ID del Grupo devuelto por Moodle",
+                    "type": "integer",
+                    "example": 888
+                },
+                "nombre": {
+                    "type": "string",
+                    "example": "Grupo A - Turno Matutino"
+                }
+            }
+        }
+    }
+}

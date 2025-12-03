@@ -21,6 +21,16 @@ func NewGrupoHandler(s *services.GrupoService) *GrupoHandler {
 }
 
 // CreateGrupo maneja la creación local del grupo y su sincronización a Moodle. (POST /grupo)
+// @Summary Crear Grupo
+// @Description Crea un grupo local
+// @Tags grupo
+// @Accept json
+// @Produce json
+// @Param grupo body models.Grupo true "Datos del grupo"
+// @Success 201 {object} models.Grupo
+// @Failure 400 {string} string
+// @Failure 500 {string} string
+// @Router /grupo/ [post]
 func (h *GrupoHandler) CreateGrupo(w http.ResponseWriter, r *http.Request) {
 	var g models.Grupo
 	if err := json.NewDecoder(r.Body).Decode(&g); err != nil {
@@ -39,6 +49,13 @@ func (h *GrupoHandler) CreateGrupo(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(g)
 }
 
+// @Summary Listar Grupos
+// @Description Obtiene todos los grupos
+// @Tags grupo
+// @Produce json
+// @Success 200 {array} models.Grupo
+// @Failure 500 {string} string
+// @Router /grupo/ [get]
 func (h *GrupoHandler) GetAllGrupo(w http.ResponseWriter, r *http.Request) {
 	grupos, err := h.Service.GetAll()
 	if err != nil {
@@ -50,6 +67,15 @@ func (h *GrupoHandler) GetAllGrupo(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(grupos)
 }
 
+// @Summary Obtener Grupo
+// @Description Obtiene un grupo por ID
+// @Tags grupo
+// @Produce json
+// @Param id path int true "ID del grupo"
+// @Success 200 {object} models.Grupo
+// @Failure 400 {string} string
+// @Failure 404 {string} string
+// @Router /grupo/{id}/ [get]
 func (h *GrupoHandler) GetGrupoByID(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -68,6 +94,17 @@ func (h *GrupoHandler) GetGrupoByID(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(pe)
 }
 
+// @Summary Actualizar Grupo
+// @Description Actualiza un grupo por ID
+// @Tags grupo
+// @Accept json
+// @Produce json
+// @Param id path int true "ID del grupo"
+// @Param grupo body models.Grupo true "Datos del grupo"
+// @Success 200 {object} models.Grupo
+// @Failure 400 {string} string
+// @Failure 500 {string} string
+// @Router /grupo/{id}/ [put]
 func (h *GrupoHandler) UpdateGrupo(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -93,6 +130,14 @@ func (h *GrupoHandler) UpdateGrupo(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteProgramaEstudio maneja la eliminación local.
+// @Summary Eliminar Grupo
+// @Description Elimina un grupo por ID
+// @Tags grupo
+// @Param id path int true "ID del grupo"
+// @Success 204 {string} string
+// @Failure 400 {string} string
+// @Failure 500 {string} string
+// @Router /grupo/{id}/ [delete]
 func (h *GrupoHandler) DeleteGrupo(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -108,6 +153,14 @@ func (h *GrupoHandler) DeleteGrupo(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// @Summary Sincronizar Grupo
+// @Description Inicia la sincronización del grupo a Moodle
+// @Tags grupo
+// @Param id path int true "ID del grupo"
+// @Success 200 {string} string
+// @Failure 400 {string} string
+// @Failure 500 {string} string
+// @Router /grupo/sync/{id} [post]
 func (h *GrupoHandler) SyncGrupo(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -128,6 +181,17 @@ func (h *GrupoHandler) SyncGrupo(w http.ResponseWriter, r *http.Request) {
 
 // AddMembersToGroup maneja la adición de miembros a un grupo local y su sincronización a Moodle.
 // POST /grupo/add-members/{grupoID}
+// @Summary Añadir Miembros a Grupo
+// @Description Añade miembros al grupo y sincroniza con Moodle
+// @Tags grupo
+// @Accept json
+// @Produce plain
+// @Param grupoID path int true "ID del grupo"
+// @Param usuarios body []uint true "IDs de usuarios"
+// @Success 200 {string} string
+// @Failure 400 {string} string
+// @Failure 500 {string} string
+// @Router /grupo/add-members/{grupoID} [post]
 func (h *GrupoHandler) AddMembersToGroup(w http.ResponseWriter, r *http.Request) {
 	grupoIDStr := chi.URLParam(r, "grupoID")
 	grupoID, err := strconv.ParseUint(grupoIDStr, 10, 32)

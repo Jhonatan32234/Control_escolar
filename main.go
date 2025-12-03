@@ -5,9 +5,12 @@ import (
 	"net/http"
 	"os"
 
+	_ "api_concurrencia/docs"
 	"api_concurrencia/pkg/migration"
 	"api_concurrencia/src/handlers"
 	"api_concurrencia/src/moodle"
+
+	httpSwagger "github.com/swaggo/http-swagger"
 
 	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
@@ -16,6 +19,11 @@ import (
 
 const defaultPort = "8080"
 
+// @title Control Escolar API
+// @version 2.0
+// @description API para gestión de Programa de Estudio, Cuatrimestres, Asignaturas, Usuarios y Grupos con sincronización a Moodle.
+// @host localhost:8080
+// @BasePath /
 func main() {
 	// 1. Configuración de la Base de Datos
 	godotenv.Load()
@@ -37,9 +45,13 @@ func main() {
 	migration.AutoMigrateTables(db)
 
 	moodleClient := moodle.NewClient()
-    log.Println("✅ Cliente de Moodle inicializado.")
+	log.Println("✅ Cliente de Moodle inicializado.")
 	// 3. Inicialización del Router y las Rutas
 	router := handlers.Routes(db, moodleClient)
+
+	// 3.1. Swagger UI en /swagger/index.html
+	// Requiere ejecutar: swag init -g main.go -o ./docs
+	router.Get("/swagger/*", httpSwagger.WrapHandler)
 
 	// 4. Inicialización del Servidor HTTP
 	port := os.Getenv("PORT")
@@ -48,7 +60,7 @@ func main() {
 	}
 
 	log.Printf("🌐 Servidor escuchando en http://localhost:%s", port)
-	
+
 	// El router (chi.Mux) implementa la interfaz http.Handler
 	err = http.ListenAndServe(":"+port, router)
 	if err != nil {
