@@ -45,8 +45,8 @@ func Routes(db *gorm.DB, moodleClient *moodle.Client) *chi.Mux {
 		r.Post("/sync/{id}", peHandler.SyncProgramaEstudio) 
 		r.Route("/{id}", func(r chi.Router) {
 			r.Get("/", peHandler.GetProgramaEstudioByID)
-			r.Put("/", peHandler.UpdateProgramaEstudio)
-			r.Delete("/", peHandler.DeleteProgramaEstudio)
+			//r.Put("/", peHandler.UpdateProgramaEstudio)
+			//r.Delete("/", peHandler.DeleteProgramaEstudio)
 		})
 	})
     
@@ -75,13 +75,12 @@ func Routes(db *gorm.DB, moodleClient *moodle.Client) *chi.Mux {
 	r.Route("/usuario", func(r chi.Router) {
 		r.Post("/", uHandler.CreateUsuario)
 		r.Get("/", uHandler.GetAllUsuarios) 
+		r.Get("/unsynced", uHandler.GetUnsyncedUsuarios)
+		r.Get("/by_group/{grupoID}",uHandler.GetUsuariosByGroupID)
 		r.Post("/sync/{id}", uHandler.SyncUsuario)
-		r.Post("/bulk-sync", uHandler.BulkSyncUsuarios) // RUTA MASIVA
 		r.Post("/enrol/{usuarioID}/{asignaturaID}", uHandler.MatricularUsuario)
 		r.Route("/{id}", func(r chi.Router) {
 			r.Get("/", uHandler.GetUsuarioByID) 
-			r.Put("/", uHandler.UpdateUsuario)   
-			r.Delete("/", uHandler.DeleteUsuario)
 		})
 	})
 

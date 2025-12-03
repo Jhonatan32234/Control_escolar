@@ -21,19 +21,32 @@ func NewProgramaEstudioHandler(s *services.ProgramaEstudioService) *ProgramaEstu
 
 // CreateProgramaEstudio maneja la creación local.
 func (h *ProgramaEstudioHandler) CreateProgramaEstudio(w http.ResponseWriter, r *http.Request) {
-	var pe models.ProgramaEstudio
-	if err := json.NewDecoder(r.Body).Decode(&pe); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+    var pe models.ProgramaEstudio
+    if err := json.NewDecoder(r.Body).Decode(&pe); err != nil {
+        http.Error(w, err.Error(), http.StatusBadRequest)
+        return
+    }
 
-	if err := h.Service.CreateLocal(&pe); err != nil {
-		http.Error(w, "Error al crear PE local: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
+    // 🛑 VALIDACIÓN DE ENTRADA
+    if pe.Nombre == "" || pe.Descripcion == nil || *pe.Descripcion == "" {
+        http.Error(w, "Faltan campos obligatorios: nombre o descripción.", http.StatusBadRequest)
+        return
+    }
+    if pe.ID_Externo == nil || *pe.ID_Externo == "" {
+        http.Error(w, "El campo 'id_externo' es obligatorio.", http.StatusBadRequest)
+        return
+    }
+    // Prevenir que el cliente establezca ID_Moodle o ID local
+    pe.ID_Moodle = nil
+    pe.ID = 0 
 
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(pe)
+    if err := h.Service.CreateLocal(&pe); err != nil {
+        http.Error(w, "Error al crear PE local: "+err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    w.WriteHeader(http.StatusCreated)
+    json.NewEncoder(w).Encode(pe)
 }
 
 // SyncProgramaEstudio maneja la solicitud de sincronización.
@@ -56,27 +69,27 @@ func (h *ProgramaEstudioHandler) SyncProgramaEstudio(w http.ResponseWriter, r *h
 
 // GetAllProgramaEstudio obtiene todos los PE.
 func (h *ProgramaEstudioHandler) GetAllProgramaEstudio(w http.ResponseWriter, r *http.Request) {
-	programas, err := h.Service.Repo.GetAll() // Asumiendo que el servicio llama al repositorio
-	if err != nil {
-		http.Error(w, "Error al obtener PE: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(programas)
+    programas, err := h.Service.GetAll() 
+    if err != nil {
+        http.Error(w, "Error al obtener PE: "+err.Error(), http.StatusInternalServerError)
+        return
+    }
+    w.WriteHeader(http.StatusOK)
+    json.NewEncoder(w).Encode(programas)
 }
 
 // GetProgramaEstudioByID obtiene un PE por ID.
 func (h *ProgramaEstudioHandler) GetProgramaEstudioByID(w http.ResponseWriter, r *http.Request) {
-	idStr := chi.URLParam(r, "id")
-	id, _ := strconv.ParseUint(idStr, 10, 32)
-	
-	pe, err := h.Service.GetByID(uint(id))
-	if err != nil {
-		http.Error(w, "PE no encontrado: "+err.Error(), http.StatusNotFound)
-		return
-	}
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(pe)
+    idStr := chi.URLParam(r, "id")
+    id, _ := strconv.ParseUint(idStr, 10, 32)
+    
+    pe, err := h.Service.GetByID(uint(id))
+    if err != nil {
+        http.Error(w, "PE no encontrado: "+err.Error(), http.StatusNotFound)
+        return
+    }
+    w.WriteHeader(http.StatusOK)
+    json.NewEncoder(w).Encode(pe)
 }
 
 // UpdateProgramaEstudio maneja la actualización local.
