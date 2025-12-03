@@ -7,6 +7,7 @@ import (
 
 	"api_concurrencia/src/models"
 	"api_concurrencia/src/services"
+
 	"github.com/go-chi/chi/v5"
 )
 
@@ -19,6 +20,16 @@ func NewCuatrimestreHandler(s *services.CuatrimestreService) *CuatrimestreHandle
 }
 
 // CreateCuatrimestre maneja la creación local. (POST /cuatrimestre)
+// @Summary Crear Cuatrimestre
+// @Description Crea un cuatrimestre local
+// @Tags cuatrimestre
+// @Accept json
+// @Produce json
+// @Param cuatrimestre body models.Cuatrimestre true "Datos del cuatrimestre"
+// @Success 201 {object} models.Cuatrimestre
+// @Failure 400 {string} string
+// @Failure 500 {string} string
+// @Router /cuatrimestre/ [post]
 func (h *CuatrimestreHandler) CreateCuatrimestre(w http.ResponseWriter, r *http.Request) {
 	var c models.Cuatrimestre
 	if err := json.NewDecoder(r.Body).Decode(&c); err != nil {
@@ -31,40 +42,78 @@ func (h *CuatrimestreHandler) CreateCuatrimestre(w http.ResponseWriter, r *http.
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(c)
 }
 
 // GetCuatrimestreByID obtiene un Cuatrimestre por ID. (GET /cuatrimestre/{id})
+// @Summary Obtener Cuatrimestre
+// @Description Obtiene un cuatrimestre por ID
+// @Tags cuatrimestre
+// @Produce json
+// @Param id path int true "ID del cuatrimestre"
+// @Success 200 {object} models.Cuatrimestre
+// @Failure 400 {string} string
+// @Failure 404 {string} string
+// @Router /cuatrimestre/{id}/ [get]
 func (h *CuatrimestreHandler) GetCuatrimestreByID(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
-	id, _ := strconv.ParseUint(idStr, 10, 32)
-	
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil || id == 0 {
+		http.Error(w, "ID inválido", http.StatusBadRequest)
+		return
+	}
+
 	c, err := h.Service.GetByID(uint(id))
 	if err != nil {
 		http.Error(w, "Cuatrimestre no encontrado: "+err.Error(), http.StatusNotFound)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(c)
 }
 
 // GetAllCuatrimestres obtiene todos los Cuatrimestres. (GET /cuatrimestre)
+// @Summary Listar Cuatrimestres
+// @Description Obtiene todos los cuatrimestres
+// @Tags cuatrimestre
+// @Produce json
+// @Success 200 {array} models.Cuatrimestre
+// @Failure 500 {string} string
+// @Router /cuatrimestre/ [get]
 func (h *CuatrimestreHandler) GetAllCuatrimestres(w http.ResponseWriter, r *http.Request) {
 	cuatrimestres, err := h.Service.GetAll()
 	if err != nil {
 		http.Error(w, "Error al obtener Cuatrimestres: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(cuatrimestres)
 }
 
 // UpdateCuatrimestre maneja la actualización local. (PUT /cuatrimestre/{id})
+// @Summary Actualizar Cuatrimestre
+// @Description Actualiza un cuatrimestre por ID
+// @Tags cuatrimestre
+// @Accept json
+// @Produce json
+// @Param id path int true "ID del cuatrimestre"
+// @Param cuatrimestre body models.Cuatrimestre true "Datos del cuatrimestre"
+// @Success 200 {object} models.Cuatrimestre
+// @Failure 400 {string} string
+// @Failure 500 {string} string
+// @Router /cuatrimestre/{id}/ [put]
 func (h *CuatrimestreHandler) UpdateCuatrimestre(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
-	id, _ := strconv.ParseUint(idStr, 10, 32)
-	
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil || id == 0 {
+		http.Error(w, "ID inválido", http.StatusBadRequest)
+		return
+	}
+
 	var c models.Cuatrimestre
 	if err := json.NewDecoder(r.Body).Decode(&c); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -76,15 +125,28 @@ func (h *CuatrimestreHandler) UpdateCuatrimestre(w http.ResponseWriter, r *http.
 		http.Error(w, "Error al actualizar Cuatrimestre local: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(c)
 }
 
 // DeleteCuatrimestre maneja la eliminación local. (DELETE /cuatrimestre/{id})
+// @Summary Eliminar Cuatrimestre
+// @Description Elimina un cuatrimestre por ID
+// @Tags cuatrimestre
+// @Param id path int true "ID del cuatrimestre"
+// @Success 204 {string} string
+// @Failure 400 {string} string
+// @Failure 500 {string} string
+// @Router /cuatrimestre/{id}/ [delete]
 func (h *CuatrimestreHandler) DeleteCuatrimestre(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
-	id, _ := strconv.ParseUint(idStr, 10, 32)
-	
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil || id == 0 {
+		http.Error(w, "ID inválido", http.StatusBadRequest)
+		return
+	}
+
 	if err := h.Service.DeleteLocal(uint(id)); err != nil {
 		http.Error(w, "Error al eliminar Cuatrimestre local: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -93,6 +155,13 @@ func (h *CuatrimestreHandler) DeleteCuatrimestre(w http.ResponseWriter, r *http.
 }
 
 // SyncCuatrimestre maneja la solicitud de sincronización. (POST /cuatrimestre/sync/{id})
+// @Summary Sincronizar Cuatrimestre
+// @Description Inicia la sincronización del cuatrimestre a Moodle
+// @Tags cuatrimestre
+// @Param id path int true "ID del cuatrimestre"
+// @Success 200 {string} string
+// @Failure 400 {string} string
+// @Router /cuatrimestre/sync/{id} [post]
 func (h *CuatrimestreHandler) SyncCuatrimestre(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseUint(idStr, 10, 32)

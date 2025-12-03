@@ -1,0 +1,586 @@
+basePath: /
+definitions:
+  models.Asignatura:
+    description: Modelo de Asignatura (Curso) utilizado en la API y sincronizado con
+      Moodle.
+    properties:
+      cuatrimestre_id:
+        description: Relación de Pertenencia (Clave Foránea)
+        example: 5
+        type: integer
+      id_externo:
+        description: 'Moodle: idnumber'
+        example: ASIG-POO1-2025
+        type: string
+      id_moodle:
+        description: Sincronización con Moodle
+        example: 1234
+        type: integer
+      nombre_completo:
+        description: Datos del Curso (Obligatorios para Moodle)
+        example: Programación Orientada a Objetos I
+        type: string
+      nombre_corto:
+        description: 'Moodle: shortname'
+        example: POO1-2025-A
+        type: string
+      resumen:
+        description: Información adicional (Opcional)
+        example: Curso introductorio de programación orientada a objetos que cubre
+          conceptos fundamentales como clases, objetos, herencia y polimorfismo.
+        type: string
+    type: object
+  models.Cuatrimestre:
+    description: Modelo de Cuatrimestre utilizado en la API y sincronizado como subcategoría
+      en Moodle.
+    properties:
+      descripcion:
+        example: Cuatrimestre correspondiente al periodo enero-abril 2025
+        type: string
+      id_externo:
+        example: CUATR-2025-01
+        type: string
+      id_moodle:
+        example: 5678
+        type: integer
+      nombre:
+        example: Primer Cuatrimestre 2025
+        type: string
+      programa_estudio_id:
+        description: Campo de la Clave Foránea
+        example: 3
+        type: integer
+    type: object
+  models.Grupo:
+    description: Modelo de Grupo utilizado en la API y sincronizado con Moodle.
+    properties:
+      course_id:
+        description: ID de la Asignatura/Curso local
+        example: 12
+        type: integer
+      description:
+        example: Grupo de clases matutinas para el curso de Programación
+        type: string
+      descriptionformat:
+        example: 1
+        type: integer
+      id_moodle:
+        description: ID del Grupo devuelto por Moodle
+        example: 888
+        type: integer
+      nombre:
+        example: Grupo A - Turno Matutino
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API para gestión de Programa de Estudio, Cuatrimestres, Asignaturas,
+    Usuarios y Grupos con sincronización a Moodle.
+  title: Control Escolar API
+  version: "2.0"
+paths:
+  /asignatura/:
+    get:
+      description: Obtiene todas las asignaturas
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Asignatura'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Listar Asignaturas
+      tags:
+      - asignatura
+    post:
+      consumes:
+      - application/json
+      description: Crea una asignatura local
+      parameters:
+      - description: Datos de la asignatura
+        in: body
+        name: asignatura
+        required: true
+        schema:
+          $ref: '#/definitions/models.Asignatura'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Asignatura'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Crear Asignatura
+      tags:
+      - asignatura
+  /asignatura/{id}/:
+    delete:
+      description: Elimina una asignatura por ID
+      parameters:
+      - description: ID de la asignatura
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Eliminar Asignatura
+      tags:
+      - asignatura
+    get:
+      description: Obtiene una asignatura por ID
+      parameters:
+      - description: ID de la asignatura
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Asignatura'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Obtener Asignatura
+      tags:
+      - asignatura
+    put:
+      consumes:
+      - application/json
+      description: Actualiza una asignatura por ID
+      parameters:
+      - description: ID de la asignatura
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Datos de la asignatura
+        in: body
+        name: asignatura
+        required: true
+        schema:
+          $ref: '#/definitions/models.Asignatura'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Asignatura'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Actualizar Asignatura
+      tags:
+      - asignatura
+  /asignatura/sync/{id}:
+    post:
+      description: Inicia la sincronización de una asignatura a Moodle
+      parameters:
+      - description: ID de la asignatura
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Sincronizar Asignatura
+      tags:
+      - asignatura
+  /cuatrimestre/:
+    get:
+      description: Obtiene todos los cuatrimestres
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Cuatrimestre'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Listar Cuatrimestres
+      tags:
+      - cuatrimestre
+    post:
+      consumes:
+      - application/json
+      description: Crea un cuatrimestre local
+      parameters:
+      - description: Datos del cuatrimestre
+        in: body
+        name: cuatrimestre
+        required: true
+        schema:
+          $ref: '#/definitions/models.Cuatrimestre'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Cuatrimestre'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Crear Cuatrimestre
+      tags:
+      - cuatrimestre
+  /cuatrimestre/{id}/:
+    delete:
+      description: Elimina un cuatrimestre por ID
+      parameters:
+      - description: ID del cuatrimestre
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Eliminar Cuatrimestre
+      tags:
+      - cuatrimestre
+    get:
+      description: Obtiene un cuatrimestre por ID
+      parameters:
+      - description: ID del cuatrimestre
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Cuatrimestre'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Obtener Cuatrimestre
+      tags:
+      - cuatrimestre
+    put:
+      consumes:
+      - application/json
+      description: Actualiza un cuatrimestre por ID
+      parameters:
+      - description: ID del cuatrimestre
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Datos del cuatrimestre
+        in: body
+        name: cuatrimestre
+        required: true
+        schema:
+          $ref: '#/definitions/models.Cuatrimestre'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Cuatrimestre'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Actualizar Cuatrimestre
+      tags:
+      - cuatrimestre
+  /cuatrimestre/sync/{id}:
+    post:
+      description: Inicia la sincronización del cuatrimestre a Moodle
+      parameters:
+      - description: ID del cuatrimestre
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Sincronizar Cuatrimestre
+      tags:
+      - cuatrimestre
+  /grupo/:
+    get:
+      description: Obtiene todos los grupos
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Grupo'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Listar Grupos
+      tags:
+      - grupo
+    post:
+      consumes:
+      - application/json
+      description: Crea un grupo local
+      parameters:
+      - description: Datos del grupo
+        in: body
+        name: grupo
+        required: true
+        schema:
+          $ref: '#/definitions/models.Grupo'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Grupo'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Crear Grupo
+      tags:
+      - grupo
+  /grupo/{id}/:
+    delete:
+      description: Elimina un grupo por ID
+      parameters:
+      - description: ID del grupo
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Eliminar Grupo
+      tags:
+      - grupo
+    get:
+      description: Obtiene un grupo por ID
+      parameters:
+      - description: ID del grupo
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Grupo'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+      summary: Obtener Grupo
+      tags:
+      - grupo
+    put:
+      consumes:
+      - application/json
+      description: Actualiza un grupo por ID
+      parameters:
+      - description: ID del grupo
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Datos del grupo
+        in: body
+        name: grupo
+        required: true
+        schema:
+          $ref: '#/definitions/models.Grupo'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Grupo'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Actualizar Grupo
+      tags:
+      - grupo
+  /grupo/add-members/{grupoID}:
+    post:
+      consumes:
+      - application/json
+      description: Añade miembros al grupo y sincroniza con Moodle
+      parameters:
+      - description: ID del grupo
+        in: path
+        name: grupoID
+        required: true
+        type: integer
+      - description: IDs de usuarios
+        in: body
+        name: usuarios
+        required: true
+        schema:
+          items:
+            type: integer
+          type: array
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Añadir Miembros a Grupo
+      tags:
+      - grupo
+  /grupo/sync/{id}:
+    post:
+      description: Inicia la sincronización del grupo a Moodle
+      parameters:
+      - description: ID del grupo
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Sincronizar Grupo
+      tags:
+      - grupo
+swagger: "2.0"
