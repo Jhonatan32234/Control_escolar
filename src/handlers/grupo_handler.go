@@ -28,44 +28,54 @@ func (h *GrupoHandler) CreateGrupo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 1. Crear el grupo en la base de datos local
-	if err := h.Service.Repo.Create(&g); err != nil {
+	// 1. Crear el grupo en la base de datos local (usando servicio para validaciones)
+	if err := h.Service.CreateLocal(&g); err != nil {
 		http.Error(w, "Error al crear Grupo local: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(g)
 }
 
-
 func (h *GrupoHandler) GetAllGrupo(w http.ResponseWriter, r *http.Request) {
-	grupos, err := h.Service.Repo.GetAll() // Asumiendo que el servicio llama al repositorio
+	grupos, err := h.Service.GetAll()
 	if err != nil {
 		http.Error(w, "Error al obtener Grupos: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(grupos)
 }
 
 func (h *GrupoHandler) GetGrupoByID(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
-	id, _ := strconv.ParseUint(idStr, 10, 32)
-	
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil || id == 0 {
+		http.Error(w, "ID inválido", http.StatusBadRequest)
+		return
+	}
+
 	pe, err := h.Service.GetByID(uint(id))
 	if err != nil {
 		http.Error(w, "Grupo no encontrado: "+err.Error(), http.StatusNotFound)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(pe)
 }
 
 func (h *GrupoHandler) UpdateGrupo(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
-	id, _ := strconv.ParseUint(idStr, 10, 32)
-	
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil || id == 0 {
+		http.Error(w, "ID inválido", http.StatusBadRequest)
+		return
+	}
+
 	var pe models.Grupo
 	if err := json.NewDecoder(r.Body).Decode(&pe); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -77,16 +87,20 @@ func (h *GrupoHandler) UpdateGrupo(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error al actualizar Grupo local: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(pe)
 }
 
-
 // DeleteProgramaEstudio maneja la eliminación local.
 func (h *GrupoHandler) DeleteGrupo(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
-	id, _ := strconv.ParseUint(idStr, 10, 32)
-	
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil || id == 0 {
+		http.Error(w, "ID inválido", http.StatusBadRequest)
+		return
+	}
+
 	if err := h.Service.DeleteLocal(uint(id)); err != nil {
 		http.Error(w, "Error al eliminar Grupo local: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -107,10 +121,10 @@ func (h *GrupoHandler) SyncGrupo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Sincronización iniciada correctamente."))
 }
-
 
 // AddMembersToGroup maneja la adición de miembros a un grupo local y su sincronización a Moodle.
 // POST /grupo/add-members/{grupoID}
@@ -150,6 +164,7 @@ func (h *GrupoHandler) AddMembersToGroup(w http.ResponseWriter, r *http.Request)
 		}
 	}(uint(grupoID))
 
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(fmt.Sprintf("Miembros añadidos localmente e iniciada sincronización a Moodle para Grupo ID %d.", grupoID)))
 }

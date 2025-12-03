@@ -4,12 +4,15 @@ import (
 	"api_concurrencia/src/models"
 	"api_concurrencia/src/moodle"
 	"api_concurrencia/src/repository"
+	"errors"
 	"fmt"
 	"log"
+	"strings"
+	"unicode/utf8"
 )
 
 type CuatrimestreService struct {
-	Repo *repository.CuatrimestreRepository
+	Repo         *repository.CuatrimestreRepository
 	MoodleClient *moodle.Client
 }
 
@@ -19,7 +22,9 @@ func NewCuatrimestreService(repo *repository.CuatrimestreRepository, moodleClien
 
 // CreateLocal crea el registro en la BD local.
 func (s *CuatrimestreService) CreateLocal(c *models.Cuatrimestre) error {
-	// Lógica de validación, por ejemplo: verificar si ProgramaEstudioID existe.
+	if err := s.validateCuatrimestre(c); err != nil {
+		return err
+	}
 	return s.Repo.Create(c)
 }
 
@@ -35,11 +40,20 @@ func (s *CuatrimestreService) GetByID(id uint) (models.Cuatrimestre, error) {
 
 // UpdateLocal actualiza el registro en la BD local.
 func (s *CuatrimestreService) UpdateLocal(c *models.Cuatrimestre) error {
+	if c.ID == 0 {
+		return errors.New("ID de Cuatrimestre inválido")
+	}
+	if err := s.validateCuatrimestre(c); err != nil {
+		return err
+	}
 	return s.Repo.Update(c)
 }
 
 // DeleteLocal elimina el registro en la BD local.
 func (s *CuatrimestreService) DeleteLocal(id uint) error {
+	if id == 0 {
+		return errors.New("ID de Cuatrimestre inválido")
+	}
 	return s.Repo.Delete(id)
 }
 
@@ -62,8 +76,8 @@ func (s *CuatrimestreService) SyncToMoodle(id uint) error {
 	}
 
 	// 1. Construir el array de datos para la función de Moodle
-    // El Parent es el ID_Moodle del ProgramaEstudio (categoría padre)
-	parentID := *cuatrimestre.ProgramaEstudio.ID_Moodle 
+	// El Parent es el ID_Moodle del ProgramaEstudio (categoría padre)
+	parentID := *cuatrimestre.ProgramaEstudio.ID_Moodle
 
 	data := []moodle.CategoryRequest{
 		{
@@ -94,5 +108,31 @@ func (s *CuatrimestreService) SyncToMoodle(id uint) error {
 	}
 
 	log.Printf("✅ Cuatrimestre '%s' (ID local: %d) creado exitosamente en Moodle como subcategoría de ID: %d", cuatrimestre.Nombre, id, moodleID)
+	return nil
+}
+
+// validateCuatrimestre aplica validaciones de negocio y límites de longitud
+func (s *CuatrimestreService) validateCuatrimestre(c *models.Cuatrimestre) error {
+	c.Nombre = strings.TrimSpace(c.Nombre)
+	if c.ProgramaEstudioID == 0 {
+		return errors.New("ProgramaEstudioID es obligatorio")
+	}
+	if c.Nombre == "" {
+		return errors.New("Nombre es obligatorio")
+	}
+	if utf8.RuneCountInString(c.Nombre) > 255 {
+		return errors.New("Nombre excede el máximo de 255 caracteres")
+	}
+	if c.ID_Externo != nil {
+		trimmed := strings.TrimSpace(*c.ID_Externo)
+		if utf8.RuneCountInString(trimmed) > 100 {
+			return errors.New("ID_Externo excede el máximo de 100 caracteres")
+		}
+		*c.ID_Externo = trimmed
+	}
+	if c.Descripcion != nil {
+		trimmed := strings.TrimSpace(*c.Descripcion)
+		*c.Descripcion = trimmed
+	}
 	return nil
 }

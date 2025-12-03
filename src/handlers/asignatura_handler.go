@@ -32,39 +32,48 @@ func (h *AsignaturaHandler) CreateAsignatura(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(a)
 }
 
-
 func (h *AsignaturaHandler) GetAsignaturaByID(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
-	id, _ := strconv.ParseUint(idStr, 10, 32)
-	
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil || id == 0 {
+		http.Error(w, "ID inválido", http.StatusBadRequest)
+		return
+	}
+
 	c, err := h.Service.GetByID(uint(id))
 	if err != nil {
 		http.Error(w, "Asignatura no encontrado: "+err.Error(), http.StatusNotFound)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(c)
 }
 
 func (h *AsignaturaHandler) GetAllAsignaturas(w http.ResponseWriter, r *http.Request) {
-	cuatrimestres, err := h.Service.GetAll()
+	asignaturas, err := h.Service.GetAll()
 	if err != nil {
 		http.Error(w, "Error al obtener Asignaturas: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(cuatrimestres)
+	json.NewEncoder(w).Encode(asignaturas)
 }
-
 
 func (h *AsignaturaHandler) UpdateAsignatura(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
-	id, _ := strconv.ParseUint(idStr, 10, 32)
-	
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil || id == 0 {
+		http.Error(w, "ID inválido", http.StatusBadRequest)
+		return
+	}
+
 	var c models.Asignatura
 	if err := json.NewDecoder(r.Body).Decode(&c); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -76,6 +85,7 @@ func (h *AsignaturaHandler) UpdateAsignatura(w http.ResponseWriter, r *http.Requ
 		http.Error(w, "Error al actualizar Asignatura local: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(c)
 }
@@ -83,8 +93,12 @@ func (h *AsignaturaHandler) UpdateAsignatura(w http.ResponseWriter, r *http.Requ
 // DeleteCuatrimestre maneja la eliminación local. (DELETE /cuatrimestre/{id})
 func (h *AsignaturaHandler) DeleteAsignatura(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
-	id, _ := strconv.ParseUint(idStr, 10, 32)
-	
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil || id == 0 {
+		http.Error(w, "ID inválido", http.StatusBadRequest)
+		return
+	}
+
 	if err := h.Service.DeleteLocal(uint(id)); err != nil {
 		http.Error(w, "Error al eliminar Asignatura local: "+err.Error(), http.StatusInternalServerError)
 		return
