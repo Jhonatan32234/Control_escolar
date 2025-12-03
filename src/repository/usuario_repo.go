@@ -20,9 +20,37 @@ func (r *UsuarioRepository) Create(u *models.Usuario) error {
 
 // GetByID obtiene un Usuario por ID local.
 func (r *UsuarioRepository) GetByID(id uint) (models.Usuario, error) {
-	var u models.Usuario
-	err := r.DB.First(&u, id).Error
-	return u, err
+    var u models.Usuario
+    err := r.DB.
+        Preload("Matriculas.Asignatura"). 
+        Preload("Matriculas.Usuario"). 
+		Preload("Matriculas.Asignatura.Cuatrimestre").
+		Preload("Matriculas.Asignatura.Cuatrimestre.ProgramaEstudio").
+        First(&u, id).Error
+    return u, err
+}
+
+func (r *UsuarioRepository) ExistsByUniqueFields(u *models.Usuario) (bool, error) {
+	var count int64
+	// Buscamos un registro que NO sea el actual (si estamos haciendo un update) y que coincida con
+	// el Username, Email O Matricula.
+	err := r.DB.Model(&models.Usuario{}).
+		Where("id <> ?", u.ID). // Ignora el registro actual en caso de ser una actualización
+		Where("username = ? OR email = ? OR matricula = ?", u.Username, u.Email, u.Matricula).
+		Count(&count).Error
+	
+	if err != nil {
+		return false, err
+	}
+	// Si count es mayor que cero, significa que ya existe un duplicado.
+	return count > 0, nil
+}
+
+// SaveMatricula crea un registro en la tabla Matricula para persistir la relación local.
+func (r *UsuarioRepository) SaveMatricula(matricula models.Matricula) error {
+	// GORM automáticamente crea el registro usando los campos UsuarioID, AsignaturaID,
+	// UserMoodleID, CourseMoodleID y RoleID.
+	return r.DB.Create(&matricula).Error
 }
 
 // GetAll obtiene todos los Usuarios.

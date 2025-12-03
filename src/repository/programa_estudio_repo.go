@@ -20,16 +20,16 @@ func (r *ProgramaEstudioRepository) Create(pe *models.ProgramaEstudio) error {
 
 // GetAll obtiene todos los Programas de Estudio.
 func (r *ProgramaEstudioRepository) GetAll() ([]models.ProgramaEstudio, error) {
-	var programas []models.ProgramaEstudio
-	err := r.DB.Find(&programas).Error
-	return programas, err
+    var programas []models.ProgramaEstudio
+    err := r.DB.Preload("Cuatrimestres").Find(&programas).Error
+    return programas, err
 }
 
 // GetByID obtiene un Programa de Estudio por ID local.
 func (r *ProgramaEstudioRepository) GetByID(id uint) (models.ProgramaEstudio, error) {
-	var pe models.ProgramaEstudio
-	err := r.DB.First(&pe, id).Error
-	return pe, err
+    var pe models.ProgramaEstudio
+    err := r.DB.Preload("Cuatrimestres").First(&pe, id).Error
+    return pe, err
 }
 
 // Update actualiza un Programa de Estudio.

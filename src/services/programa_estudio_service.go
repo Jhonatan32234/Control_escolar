@@ -79,7 +79,12 @@ func (s *ProgramaEstudioService) SyncToMoodle(id uint) error {
 
 // GetByID recupera un PE.
 func (s *ProgramaEstudioService) GetByID(id uint) (models.ProgramaEstudio, error) {
-	return s.Repo.GetByID(id)
+    return s.Repo.GetByID(id) 
+}
+
+// GetAll recupera todos los PE, delegando al repo.
+func (s *ProgramaEstudioService) GetAll() ([]models.ProgramaEstudio, error) {
+    return s.Repo.GetAll() 
 }
 
 // UpdateLocal actualiza el registro en la BD local.

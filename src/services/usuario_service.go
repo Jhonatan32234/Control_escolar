@@ -48,6 +48,16 @@ func (s *UsuarioService) DeleteLocal(id uint) error {
 	return s.Repo.Delete(id)
 }
 
+// GetUnsyncedByRole recupera los usuarios pendientes de sincronización para un rol específico.
+func (s *UsuarioService) GetUnsyncedByRole(role string) ([]models.Usuario, error) {
+    return s.Repo.GetUnsyncedByRole(role)
+}
+
+// GetByGroupID recupera todos los usuarios que pertenecen a un grupo específico.
+func (s *UsuarioService) GetByGroupID(grupoID uint) ([]models.Usuario, error) {
+    return s.Repo.GetByGroupID(grupoID)
+}
+
 
 // SyncToMoodle (Para un solo usuario).
 func (s *UsuarioService) SyncToMoodle(id uint) error {
@@ -135,13 +145,12 @@ func translateRoleToMoodleID(rol string) (int, error) {
 
 func (s *UsuarioService) MatricularUsuario(usuarioID, asignaturaID uint) error {
     // 1. Obtener el Usuario local (para ID_Moodle y Rol)
-    usuario, err := s.Repo.GetByID(usuarioID) // Usamos s.Repo.GetByID
+    usuario, err := s.Repo.GetByID(usuarioID) 
     if err != nil {
         return fmt.Errorf("usuario (ID: %d) no encontrado: %w", usuarioID, err)
     }
 
     // 2. Obtener la Asignatura local (para su ID_Moodle)
-    // ⚠️ REQUERIMIENTO CUMPLIDO: Obtenemos el ID de Moodle de la Asignatura
     asignatura, err := s.AsignaturaRepo.GetByID(asignaturaID)
     if err != nil {
         return fmt.Errorf("asignatura (ID: %d) no encontrada: %w", asignaturaID, err)
@@ -156,29 +165,46 @@ func (s *UsuarioService) MatricularUsuario(usuarioID, asignaturaID uint) error {
     }
     
     // 4. Traducir el Rol de Usuario al RoleID de Moodle
-    moodleRoleID, err := translateRoleToMoodleID(usuario.Rol) // Usamos usuario.Rol
+    moodleRoleID, err := translateRoleToMoodleID(usuario.Rol) 
     if err != nil {
         return fmt.Errorf("no se pudo matricular: %w", err)
     }
+    
+    // Convertir a uint para los modelos
+    moodleRoleIDUint := uint(moodleRoleID)
 
-    // 5. Construir el array de datos para la API
+    // 5. Construir el array de datos para la API de Moodle
     data := []moodle.EnrolmentRequest{
         {
             RoleID: moodleRoleID,
-            UserID: *usuario.ID_Moodle,     // Usamos el ID_Moodle del usuario
-            CourseID: *asignatura.ID_Moodle, // Usamos el ID_Moodle de la asignatura
+            UserID: *usuario.ID_Moodle,     
+            CourseID: *asignatura.ID_Moodle, 
         },
     }
 
     // 6. Ejecutar la llamada a la API de Moodle
-    // enrol_manual_enrol_users no devuelve cuerpo, solo indica éxito o error.
     var response interface{} 
     err = s.MoodleClient.Call("enrol_manual_enrol_users", data, &response) 
     if err != nil {
-        return fmt.Errorf("fallo al matricular usuario '%s' en curso '%s': %w", usuario.Username, asignatura.NombreCompleto, err)
+        return fmt.Errorf("fallo al matricular usuario '%s' en curso '%s' en Moodle: %w", usuario.Username, asignatura.NombreCompleto, err)
+    }
+    
+    // 7. 🚀 NUEVO PASO: GUARDAR REFERENCIA EN LA TABLA MATRICULA LOCAL
+    matricula := models.Matricula{
+        UsuarioID: 		usuarioID,
+        AsignaturaID: 	asignaturaID,
+        UserMoodleID: 	*usuario.ID_Moodle,
+        CourseMoodleID: *asignatura.ID_Moodle,
+        RoleID: 		moodleRoleIDUint,
     }
 
-    log.Printf("✅ Usuario %s (ID Moodle: %d) matriculado con éxito en el curso '%s' (ID Moodle: %d) con RoleID: %d", 
+    if err := s.Repo.SaveMatricula(matricula); err != nil {
+        // La restricción de índice único compuesto en la tabla Matricula evita duplicados.
+        log.Printf("⚠️ ADVERTENCIA: La matrícula fue exitosa en Moodle, pero falló al guardar la referencia local: %v", err)
+        return fmt.Errorf("matrícula exitosa en Moodle, pero falló la referencia local: %w", err)
+    }
+
+    log.Printf("✅ Usuario %s (ID Moodle: %d) matriculado con éxito en el curso '%s' (ID Moodle: %d) con RoleID: %d y referencia local guardada.", 
         usuario.Username, *usuario.ID_Moodle, asignatura.NombreCompleto, *asignatura.ID_Moodle, moodleRoleID)
         
     return nil
@@ -215,4 +241,10 @@ func (s *UsuarioService) processInBatches(usuarios []models.Usuario) {
 	}
 
 	wg.Wait() // Espera a que todas las goroutines del lote terminen.
+}
+
+// CheckUniqueFields delega la verificación de unicidad al repositorio.
+func (s *UsuarioService) CheckUniqueFields(u *models.Usuario) (bool, error) {
+    // Nota: El repositorio es responsable de buscar duplicados por Username, Email o Matricula.
+    return s.Repo.ExistsByUniqueFields(u)
 }
