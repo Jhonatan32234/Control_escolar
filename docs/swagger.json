@@ -769,6 +769,649 @@
                     }
                 }
             }
+        },
+        "/programa_estudio": {
+            "get": {
+                "description": "Recupera la lista completa de programas de estudio",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ProgramaEstudio"
+                ],
+                "summary": "Obtener todos los programas de estudio",
+                "responses": {
+                    "200": {
+                        "description": "Lista de programas de estudio",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.ProgramaEstudio"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error al obtener programas de estudio",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Crea un nuevo programa de estudio en la base de datos local",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ProgramaEstudio"
+                ],
+                "summary": "Crear un nuevo programa de estudio",
+                "parameters": [
+                    {
+                        "description": "Datos del programa de estudio a crear",
+                        "name": "programa_estudio",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ProgramaEstudio"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Programa de estudio creado exitosamente",
+                        "schema": {
+                            "$ref": "#/definitions/models.ProgramaEstudio"
+                        }
+                    },
+                    "400": {
+                        "description": "Error en los datos de entrada o campos obligatorios faltantes",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor al crear el programa de estudio",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/programa_estudio/sync/{id}": {
+            "post": {
+                "description": "Sincroniza un programa de estudio local con Moodle como categoría padre",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "ProgramaEstudio"
+                ],
+                "summary": "Sincronizar programa de estudio con Moodle",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID del programa de estudio a sincronizar",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sincronización iniciada correctamente",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Error durante la sincronización",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/programa_estudio/{id}": {
+            "get": {
+                "description": "Recupera un programa de estudio específico mediante su ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ProgramaEstudio"
+                ],
+                "summary": "Obtener programa de estudio por ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID del programa de estudio",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Programa de estudio encontrado",
+                        "schema": {
+                            "$ref": "#/definitions/models.ProgramaEstudio"
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Programa de estudio no encontrado",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Actualiza un programa de estudio existente en la base de datos local",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ProgramaEstudio"
+                ],
+                "summary": "Actualizar programa de estudio",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID del programa de estudio a actualizar",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Datos actualizados del programa de estudio",
+                        "name": "programa_estudio",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ProgramaEstudio"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Programa de estudio actualizado exitosamente",
+                        "schema": {
+                            "$ref": "#/definitions/models.ProgramaEstudio"
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido o error en los datos de entrada",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Error al actualizar el programa de estudio",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Elimina un programa de estudio de la base de datos local",
+                "tags": [
+                    "ProgramaEstudio"
+                ],
+                "summary": "Eliminar programa de estudio",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID del programa de estudio a eliminar",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Programa de estudio eliminado exitosamente"
+                    },
+                    "400": {
+                        "description": "ID inválido",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Error al eliminar el programa de estudio",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/usuario": {
+            "get": {
+                "description": "Recupera la lista completa de usuarios (Docentes y Alumnos)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Usuario"
+                ],
+                "summary": "Obtener todos los usuarios",
+                "responses": {
+                    "200": {
+                        "description": "Lista de usuarios",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Usuario"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error al obtener usuarios",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Crea un nuevo usuario (Docente o Alumno) en la base de datos local con validaciones de contraseña, unicidad y rol",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Usuario"
+                ],
+                "summary": "Crear un nuevo usuario",
+                "parameters": [
+                    {
+                        "description": "Datos del usuario a crear (Password debe tener mín. 8 caracteres, mayúscula, número y símbolo)",
+                        "name": "usuario",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Usuario"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Usuario creado exitosamente",
+                        "schema": {
+                            "$ref": "#/definitions/models.Usuario"
+                        }
+                    },
+                    "400": {
+                        "description": "Error en los datos de entrada, campos obligatorios faltantes o contraseña inválida",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Ya existe un usuario con el mismo Username, Email o Matrícula",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor al crear el usuario",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/usuario/bulk-sync": {
+            "post": {
+                "description": "Sincroniza todos los usuarios de un rol específico (Docente o Alumno) con Moodle de forma asíncrona",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Usuario"
+                ],
+                "summary": "Sincronización masiva de usuarios por rol",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Rol a sincronizar: 'Docente' o 'Alumno'",
+                        "name": "role",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sincronización masiva de usuarios iniciada correctamente en segundo plano",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Rol inválido o no especificado",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/usuario/by_group/{grupoID}": {
+            "get": {
+                "description": "Recupera la lista de usuarios que pertenecen a un grupo específico",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Usuario"
+                ],
+                "summary": "Obtener usuarios por ID de grupo",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID del grupo",
+                        "name": "grupoID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de usuarios del grupo",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Usuario"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "ID de Grupo inválido",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Error al obtener usuarios por grupo",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/usuario/sync/{id}": {
+            "post": {
+                "description": "Sincroniza un usuario local con Moodle de forma asíncrona",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Usuario"
+                ],
+                "summary": "Sincronizar usuario con Moodle",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID del usuario a sincronizar",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sincronización del Usuario iniciada correctamente en segundo plano",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/usuario/unsynced": {
+            "get": {
+                "description": "Recupera la lista de usuarios que aún no han sido sincronizados con Moodle, filtrados por rol",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Usuario"
+                ],
+                "summary": "Obtener usuarios no sincronizados por rol",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Rol a filtrar: 'Docente' o 'Alumno'",
+                        "name": "role",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de usuarios no sincronizados",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Usuario"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Rol no especificado o inválido",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Error al obtener usuarios no sincronizados",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/usuario/{id}": {
+            "get": {
+                "description": "Recupera un usuario específico mediante su ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Usuario"
+                ],
+                "summary": "Obtener usuario por ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID del usuario",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Usuario encontrado",
+                        "schema": {
+                            "$ref": "#/definitions/models.Usuario"
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Usuario no encontrado",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Actualiza un usuario existente en la base de datos local",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Usuario"
+                ],
+                "summary": "Actualizar usuario",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID del usuario a actualizar",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Datos actualizados del usuario",
+                        "name": "usuario",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Usuario"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Usuario actualizado exitosamente",
+                        "schema": {
+                            "$ref": "#/definitions/models.Usuario"
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido o error en los datos de entrada",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Error al actualizar el usuario",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Elimina un usuario de la base de datos local",
+                "tags": [
+                    "Usuario"
+                ],
+                "summary": "Eliminar usuario",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID del usuario a eliminar",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Usuario eliminado exitosamente"
+                    },
+                    "400": {
+                        "description": "ID inválido",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Error al eliminar el usuario",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/usuario/{usuarioID}/matricular/{asignaturaID}": {
+            "post": {
+                "description": "Matricula un usuario en una asignatura de forma asíncrona (crea el enrolamiento en Moodle)",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Usuario"
+                ],
+                "summary": "Matricular usuario en asignatura",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID del usuario a matricular",
+                        "name": "usuarioID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "ID de la asignatura",
+                        "name": "asignaturaID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Matriculación iniciada en segundo plano",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "ID de Usuario o Asignatura inválido",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -860,6 +1503,74 @@
                 "nombre": {
                     "type": "string",
                     "example": "Grupo A - Turno Matutino"
+                }
+            }
+        },
+        "models.ProgramaEstudio": {
+            "description": "Modelo de Programa de Estudio utilizado en la API y sincronizado como categoría padre en Moodle.",
+            "type": "object",
+            "properties": {
+                "descripcion": {
+                    "type": "string",
+                    "example": "Programa de estudios enfocado en el desarrollo de software y sistemas de información"
+                },
+                "id_externo": {
+                    "type": "string",
+                    "example": "PROG-ISC-2025"
+                },
+                "id_moodle": {
+                    "type": "integer",
+                    "example": 9012
+                },
+                "nombre": {
+                    "type": "string",
+                    "example": "Ingeniería en Sistemas Computacionales"
+                }
+            }
+        },
+        "models.Usuario": {
+            "description": "Modelo de Usuario utilizado en la API y sincronizado como usuario en Moodle. Puede ser Docente o Alumno.",
+            "type": "object",
+            "properties": {
+                "email": {
+                    "description": "OBLIGATORIO",
+                    "type": "string",
+                    "example": "juan.perez@universidad.edu.mx"
+                },
+                "first_name": {
+                    "description": "OBLIGATORIO",
+                    "type": "string",
+                    "example": "Juan"
+                },
+                "id_moodle": {
+                    "description": "ID devuelto por Moodle",
+                    "type": "integer",
+                    "example": 3456
+                },
+                "last_name": {
+                    "description": "OBLIGATORIO",
+                    "type": "string",
+                    "example": "Pérez García"
+                },
+                "matricula": {
+                    "description": "Uso como 'idnumber'",
+                    "type": "string",
+                    "example": "20250001"
+                },
+                "password": {
+                    "description": "OBLIGATORIO",
+                    "type": "string",
+                    "example": "Segura123#"
+                },
+                "rol": {
+                    "description": "'Docente' o 'Alumno'",
+                    "type": "string",
+                    "example": "Alumno"
+                },
+                "username": {
+                    "description": "OBLIGATORIO",
+                    "type": "string",
+                    "example": "jperez2025"
                 }
             }
         }
