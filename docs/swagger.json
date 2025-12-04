@@ -82,6 +82,29 @@
                 }
             }
         },
+        "/asignatura/bulk-sync": {
+            "post": {
+                "description": "Sincroniza todas las asignaturas que no tienen ID_Moodle a Moodle",
+                "tags": [
+                    "asignatura"
+                ],
+                "summary": "Sincronización masiva de Asignaturas",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/asignatura/sync/{id}": {
             "post": {
                 "description": "Inicia la sincronización de una asignatura a Moodle",
@@ -242,6 +265,110 @@
                 }
             }
         },
+        "/auth/login": {
+            "post": {
+                "description": "Autentica un usuario con username y password, devuelve un token JWT",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Autenticación"
+                ],
+                "summary": "Iniciar sesión",
+                "parameters": [
+                    {
+                        "description": "Credenciales de inicio de sesión",
+                        "name": "credentials",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Autenticación exitosa con token JWT",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.AuthResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Datos inválidos",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Credenciales incorrectas",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/register": {
+            "post": {
+                "description": "Registra un nuevo usuario (Docente o Alumno) con validación de contraseña y hash seguro",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Autenticación"
+                ],
+                "summary": "Registrar un nuevo usuario",
+                "parameters": [
+                    {
+                        "description": "Datos del usuario para registro",
+                        "name": "usuario",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.RegisterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Usuario registrado exitosamente con token JWT",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.AuthResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Datos inválidos o contraseña débil",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Usuario ya existe",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/cuatrimestre/": {
             "get": {
                 "description": "Obtiene todos los cuatrimestres",
@@ -302,6 +429,29 @@
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/cuatrimestre/bulk-sync": {
+            "post": {
+                "description": "Sincroniza todos los cuatrimestres que no tienen ID_Moodle a Moodle",
+                "tags": [
+                    "cuatrimestre"
+                ],
+                "summary": "Sincronización masiva de Cuatrimestres",
+                "responses": {
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "type": "string"
                         }
@@ -604,6 +754,29 @@
                 }
             }
         },
+        "/grupo/bulk-sync": {
+            "post": {
+                "description": "Sincroniza todos los grupos que no tienen ID_Moodle a Moodle",
+                "tags": [
+                    "grupo"
+                ],
+                "summary": "Sincronización masiva de Grupos",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/grupo/sync/{id}": {
             "post": {
                 "description": "Inicia la sincronización del grupo a Moodle",
@@ -770,6 +943,47 @@
                 }
             }
         },
+        "/programa-estudio/sync/{id}": {
+            "post": {
+                "description": "Sincroniza un programa de estudio local con Moodle como categoría padre",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "ProgramaEstudio"
+                ],
+                "summary": "Sincronizar programa de estudio con Moodle",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID del programa de estudio a sincronizar",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sincronización iniciada correctamente",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Error durante la sincronización",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/programa_estudio": {
             "get": {
                 "description": "Recupera la lista completa de programas de estudio",
@@ -836,47 +1050,6 @@
                     },
                     "500": {
                         "description": "Error interno del servidor al crear el programa de estudio",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/programa_estudio/sync/{id}": {
-            "post": {
-                "description": "Sincroniza un programa de estudio local con Moodle como categoría padre",
-                "produces": [
-                    "text/plain"
-                ],
-                "tags": [
-                    "ProgramaEstudio"
-                ],
-                "summary": "Sincronizar programa de estudio con Moodle",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID del programa de estudio a sincronizar",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Sincronización iniciada correctamente",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "ID inválido",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Error durante la sincronización",
                         "schema": {
                             "type": "string"
                         }
@@ -1415,6 +1588,77 @@
         }
     },
     "definitions": {
+        "handlers.AuthResponse": {
+            "type": "object",
+            "properties": {
+                "expires_at": {
+                    "type": "integer",
+                    "example": 1701734400
+                },
+                "rol": {
+                    "type": "string",
+                    "example": "Alumno"
+                },
+                "token": {
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                },
+                "user_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "username": {
+                    "type": "string",
+                    "example": "jperez2025"
+                }
+            }
+        },
+        "handlers.LoginRequest": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "example": "Segura123#"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "jperez2025"
+                }
+            }
+        },
+        "handlers.RegisterRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "juan.perez@universidad.edu.mx"
+                },
+                "first_name": {
+                    "type": "string",
+                    "example": "Juan"
+                },
+                "last_name": {
+                    "type": "string",
+                    "example": "Pérez García"
+                },
+                "matricula": {
+                    "type": "string",
+                    "example": "20250001"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "Segura123#"
+                },
+                "rol": {
+                    "type": "string",
+                    "example": "Alumno"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "jperez2025"
+                }
+            }
+        },
         "models.Asignatura": {
             "description": "Modelo de Asignatura (Curso) utilizado en la API y sincronizado con Moodle.",
             "type": "object",

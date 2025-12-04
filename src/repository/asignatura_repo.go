@@ -2,6 +2,7 @@ package repository
 
 import (
 	"api_concurrencia/src/models"
+
 	"gorm.io/gorm"
 )
 
@@ -29,7 +30,7 @@ func (r *AsignaturaRepository) GetAll() ([]models.Asignatura, error) {
 // GetByID obtiene una Asignatura por ID local.
 func (r *AsignaturaRepository) GetByID(id uint) (models.Asignatura, error) {
 	var asignatura models.Asignatura
-	err := r.DB.Preload("Cuatrimestre.ProgramaEstudio").First(&asignatura, id).Error 
+	err := r.DB.Preload("Cuatrimestre.ProgramaEstudio").First(&asignatura, id).Error
 	return asignatura, err
 }
 
@@ -42,4 +43,11 @@ func (r *AsignaturaRepository) Update(a *models.Asignatura) error {
 func (r *AsignaturaRepository) Delete(id uint) error {
 	// Nota: Un curso no debe borrarse si ya tiene usuarios matriculados.
 	return r.DB.Delete(&models.Asignatura{}, id).Error
+}
+
+// GetUnsynced obtiene todas las asignaturas que no tienen ID_Moodle
+func (r *AsignaturaRepository) GetUnsynced() ([]models.Asignatura, error) {
+	var asignaturas []models.Asignatura
+	err := r.DB.Preload("Cuatrimestre.ProgramaEstudio").Where("id_moodle IS NULL").Find(&asignaturas).Error
+	return asignaturas, err
 }

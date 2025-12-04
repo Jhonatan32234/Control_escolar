@@ -68,7 +68,7 @@ func (h *ProgramaEstudioHandler) CreateProgramaEstudio(w http.ResponseWriter, r 
 // @Success 200 {string} string "Sincronización iniciada correctamente"
 // @Failure 400 {string} string "ID inválido"
 // @Failure 500 {string} string "Error durante la sincronización"
-// @Router /programa_estudio/sync/{id} [post]
+// @Router /programa-estudio/sync/{id} [post]
 func (h *ProgramaEstudioHandler) SyncProgramaEstudio(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseUint(idStr, 10, 32)

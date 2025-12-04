@@ -176,3 +176,17 @@ func (h *CuatrimestreHandler) SyncCuatrimestre(w http.ResponseWriter, r *http.Re
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Sincronización del Cuatrimestre iniciada correctamente en segundo plano."))
 }
+
+// BulkSyncCuatrimestres maneja la sincronización masiva de cuatrimestres a Moodle. (POST /cuatrimestre/bulk-sync)
+// @Summary Sincronización masiva de Cuatrimestres
+// @Description Sincroniza todos los cuatrimestres que no tienen ID_Moodle a Moodle
+// @Tags cuatrimestre
+// @Success 200 {string} string
+// @Failure 500 {string} string
+// @Router /cuatrimestre/bulk-sync [post]
+func (h *CuatrimestreHandler) BulkSyncCuatrimestres(w http.ResponseWriter, r *http.Request) {
+	h.Service.BulkSyncToMoodle()
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Sincronización masiva de cuatrimestres iniciada correctamente en segundo plano."))
+}
