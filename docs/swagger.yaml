@@ -1,5 +1,56 @@
 basePath: /
 definitions:
+  handlers.AuthResponse:
+    properties:
+      expires_at:
+        example: 1701734400
+        type: integer
+      rol:
+        example: Alumno
+        type: string
+      token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      user_id:
+        example: 1
+        type: integer
+      username:
+        example: jperez2025
+        type: string
+    type: object
+  handlers.LoginRequest:
+    properties:
+      password:
+        example: Segura123#
+        type: string
+      username:
+        example: jperez2025
+        type: string
+    type: object
+  handlers.RegisterRequest:
+    properties:
+      email:
+        example: juan.perez@universidad.edu.mx
+        type: string
+      first_name:
+        example: Juan
+        type: string
+      last_name:
+        example: Pérez García
+        type: string
+      matricula:
+        example: "20250001"
+        type: string
+      password:
+        example: Segura123#
+        type: string
+      rol:
+        example: Alumno
+        type: string
+      username:
+        example: jperez2025
+        type: string
+    type: object
   models.Asignatura:
     description: Modelo de Asignatura (Curso) utilizado en la API y sincronizado con
       Moodle.
@@ -70,6 +121,61 @@ definitions:
         type: integer
       nombre:
         example: Grupo A - Turno Matutino
+        type: string
+    type: object
+  models.ProgramaEstudio:
+    description: Modelo de Programa de Estudio utilizado en la API y sincronizado
+      como categoría padre en Moodle.
+    properties:
+      descripcion:
+        example: Programa de estudios enfocado en el desarrollo de software y sistemas
+          de información
+        type: string
+      id_externo:
+        example: PROG-ISC-2025
+        type: string
+      id_moodle:
+        example: 9012
+        type: integer
+      nombre:
+        example: Ingeniería en Sistemas Computacionales
+        type: string
+    type: object
+  models.Usuario:
+    description: Modelo de Usuario utilizado en la API y sincronizado como usuario
+      en Moodle. Puede ser Docente o Alumno.
+    properties:
+      email:
+        description: OBLIGATORIO
+        example: juan.perez@universidad.edu.mx
+        type: string
+      first_name:
+        description: OBLIGATORIO
+        example: Juan
+        type: string
+      id_moodle:
+        description: ID devuelto por Moodle
+        example: 3456
+        type: integer
+      last_name:
+        description: OBLIGATORIO
+        example: Pérez García
+        type: string
+      matricula:
+        description: Uso como 'idnumber'
+        example: "20250001"
+        type: string
+      password:
+        description: OBLIGATORIO
+        example: Segura123#
+        type: string
+      rol:
+        description: '''Docente'' o ''Alumno'''
+        example: Alumno
+        type: string
+      username:
+        description: OBLIGATORIO
+        example: jperez2025
         type: string
     type: object
 host: localhost:8080
@@ -213,6 +319,21 @@ paths:
       summary: Actualizar Asignatura
       tags:
       - asignatura
+  /asignatura/bulk-sync:
+    post:
+      description: Sincroniza todas las asignaturas que no tienen ID_Moodle a Moodle
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Sincronización masiva de Asignaturas
+      tags:
+      - asignatura
   /asignatura/sync/{id}:
     post:
       description: Inicia la sincronización de una asignatura a Moodle
@@ -234,6 +355,76 @@ paths:
       summary: Sincronizar Asignatura
       tags:
       - asignatura
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Autentica un usuario con username y password, devuelve un token
+        JWT
+      parameters:
+      - description: Credenciales de inicio de sesión
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Autenticación exitosa con token JWT
+          schema:
+            $ref: '#/definitions/handlers.AuthResponse'
+        "400":
+          description: Datos inválidos
+          schema:
+            type: string
+        "401":
+          description: Credenciales incorrectas
+          schema:
+            type: string
+        "500":
+          description: Error interno del servidor
+          schema:
+            type: string
+      summary: Iniciar sesión
+      tags:
+      - Autenticación
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Registra un nuevo usuario (Docente o Alumno) con validación de
+        contraseña y hash seguro
+      parameters:
+      - description: Datos del usuario para registro
+        in: body
+        name: usuario
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Usuario registrado exitosamente con token JWT
+          schema:
+            $ref: '#/definitions/handlers.AuthResponse'
+        "400":
+          description: Datos inválidos o contraseña débil
+          schema:
+            type: string
+        "409":
+          description: Usuario ya existe
+          schema:
+            type: string
+        "500":
+          description: Error interno del servidor
+          schema:
+            type: string
+      summary: Registrar un nuevo usuario
+      tags:
+      - Autenticación
   /cuatrimestre/:
     get:
       description: Obtiene todos los cuatrimestres
@@ -365,6 +556,21 @@ paths:
           schema:
             type: string
       summary: Actualizar Cuatrimestre
+      tags:
+      - cuatrimestre
+  /cuatrimestre/bulk-sync:
+    post:
+      description: Sincroniza todos los cuatrimestres que no tienen ID_Moodle a Moodle
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Sincronización masiva de Cuatrimestres
       tags:
       - cuatrimestre
   /cuatrimestre/sync/{id}:
@@ -558,6 +764,21 @@ paths:
       summary: Añadir Miembros a Grupo
       tags:
       - grupo
+  /grupo/bulk-sync:
+    post:
+      description: Sincroniza todos los grupos que no tienen ID_Moodle a Moodle
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Sincronización masiva de Grupos
+      tags:
+      - grupo
   /grupo/sync/{id}:
     post:
       description: Inicia la sincronización del grupo a Moodle
@@ -583,4 +804,439 @@ paths:
       summary: Sincronizar Grupo
       tags:
       - grupo
+  /programa-estudio/sync/{id}:
+    post:
+      description: Sincroniza un programa de estudio local con Moodle como categoría
+        padre
+      parameters:
+      - description: ID del programa de estudio a sincronizar
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Sincronización iniciada correctamente
+          schema:
+            type: string
+        "400":
+          description: ID inválido
+          schema:
+            type: string
+        "500":
+          description: Error durante la sincronización
+          schema:
+            type: string
+      summary: Sincronizar programa de estudio con Moodle
+      tags:
+      - ProgramaEstudio
+  /programa_estudio:
+    get:
+      description: Recupera la lista completa de programas de estudio
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de programas de estudio
+          schema:
+            items:
+              $ref: '#/definitions/models.ProgramaEstudio'
+            type: array
+        "500":
+          description: Error al obtener programas de estudio
+          schema:
+            type: string
+      summary: Obtener todos los programas de estudio
+      tags:
+      - ProgramaEstudio
+    post:
+      consumes:
+      - application/json
+      description: Crea un nuevo programa de estudio en la base de datos local
+      parameters:
+      - description: Datos del programa de estudio a crear
+        in: body
+        name: programa_estudio
+        required: true
+        schema:
+          $ref: '#/definitions/models.ProgramaEstudio'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Programa de estudio creado exitosamente
+          schema:
+            $ref: '#/definitions/models.ProgramaEstudio'
+        "400":
+          description: Error en los datos de entrada o campos obligatorios faltantes
+          schema:
+            type: string
+        "500":
+          description: Error interno del servidor al crear el programa de estudio
+          schema:
+            type: string
+      summary: Crear un nuevo programa de estudio
+      tags:
+      - ProgramaEstudio
+  /programa_estudio/{id}:
+    delete:
+      description: Elimina un programa de estudio de la base de datos local
+      parameters:
+      - description: ID del programa de estudio a eliminar
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: Programa de estudio eliminado exitosamente
+        "400":
+          description: ID inválido
+          schema:
+            type: string
+        "500":
+          description: Error al eliminar el programa de estudio
+          schema:
+            type: string
+      summary: Eliminar programa de estudio
+      tags:
+      - ProgramaEstudio
+    get:
+      description: Recupera un programa de estudio específico mediante su ID
+      parameters:
+      - description: ID del programa de estudio
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Programa de estudio encontrado
+          schema:
+            $ref: '#/definitions/models.ProgramaEstudio'
+        "400":
+          description: ID inválido
+          schema:
+            type: string
+        "404":
+          description: Programa de estudio no encontrado
+          schema:
+            type: string
+      summary: Obtener programa de estudio por ID
+      tags:
+      - ProgramaEstudio
+    put:
+      consumes:
+      - application/json
+      description: Actualiza un programa de estudio existente en la base de datos
+        local
+      parameters:
+      - description: ID del programa de estudio a actualizar
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Datos actualizados del programa de estudio
+        in: body
+        name: programa_estudio
+        required: true
+        schema:
+          $ref: '#/definitions/models.ProgramaEstudio'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Programa de estudio actualizado exitosamente
+          schema:
+            $ref: '#/definitions/models.ProgramaEstudio'
+        "400":
+          description: ID inválido o error en los datos de entrada
+          schema:
+            type: string
+        "500":
+          description: Error al actualizar el programa de estudio
+          schema:
+            type: string
+      summary: Actualizar programa de estudio
+      tags:
+      - ProgramaEstudio
+  /usuario:
+    get:
+      description: Recupera la lista completa de usuarios (Docentes y Alumnos)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de usuarios
+          schema:
+            items:
+              $ref: '#/definitions/models.Usuario'
+            type: array
+        "500":
+          description: Error al obtener usuarios
+          schema:
+            type: string
+      summary: Obtener todos los usuarios
+      tags:
+      - Usuario
+    post:
+      consumes:
+      - application/json
+      description: Crea un nuevo usuario (Docente o Alumno) en la base de datos local
+        con validaciones de contraseña, unicidad y rol
+      parameters:
+      - description: Datos del usuario a crear (Password debe tener mín. 8 caracteres,
+          mayúscula, número y símbolo)
+        in: body
+        name: usuario
+        required: true
+        schema:
+          $ref: '#/definitions/models.Usuario'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Usuario creado exitosamente
+          schema:
+            $ref: '#/definitions/models.Usuario'
+        "400":
+          description: Error en los datos de entrada, campos obligatorios faltantes
+            o contraseña inválida
+          schema:
+            type: string
+        "409":
+          description: Ya existe un usuario con el mismo Username, Email o Matrícula
+          schema:
+            type: string
+        "500":
+          description: Error interno del servidor al crear el usuario
+          schema:
+            type: string
+      summary: Crear un nuevo usuario
+      tags:
+      - Usuario
+  /usuario/{id}:
+    delete:
+      description: Elimina un usuario de la base de datos local
+      parameters:
+      - description: ID del usuario a eliminar
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: Usuario eliminado exitosamente
+        "400":
+          description: ID inválido
+          schema:
+            type: string
+        "500":
+          description: Error al eliminar el usuario
+          schema:
+            type: string
+      summary: Eliminar usuario
+      tags:
+      - Usuario
+    get:
+      description: Recupera un usuario específico mediante su ID
+      parameters:
+      - description: ID del usuario
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Usuario encontrado
+          schema:
+            $ref: '#/definitions/models.Usuario'
+        "400":
+          description: ID inválido
+          schema:
+            type: string
+        "404":
+          description: Usuario no encontrado
+          schema:
+            type: string
+      summary: Obtener usuario por ID
+      tags:
+      - Usuario
+    put:
+      consumes:
+      - application/json
+      description: Actualiza un usuario existente en la base de datos local
+      parameters:
+      - description: ID del usuario a actualizar
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Datos actualizados del usuario
+        in: body
+        name: usuario
+        required: true
+        schema:
+          $ref: '#/definitions/models.Usuario'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Usuario actualizado exitosamente
+          schema:
+            $ref: '#/definitions/models.Usuario'
+        "400":
+          description: ID inválido o error en los datos de entrada
+          schema:
+            type: string
+        "500":
+          description: Error al actualizar el usuario
+          schema:
+            type: string
+      summary: Actualizar usuario
+      tags:
+      - Usuario
+  /usuario/{usuarioID}/matricular/{asignaturaID}:
+    post:
+      description: Matricula un usuario en una asignatura de forma asíncrona (crea
+        el enrolamiento en Moodle)
+      parameters:
+      - description: ID del usuario a matricular
+        in: path
+        name: usuarioID
+        required: true
+        type: integer
+      - description: ID de la asignatura
+        in: path
+        name: asignaturaID
+        required: true
+        type: integer
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Matriculación iniciada en segundo plano
+          schema:
+            type: string
+        "400":
+          description: ID de Usuario o Asignatura inválido
+          schema:
+            type: string
+      summary: Matricular usuario en asignatura
+      tags:
+      - Usuario
+  /usuario/bulk-sync:
+    post:
+      description: Sincroniza todos los usuarios de un rol específico (Docente o Alumno)
+        con Moodle de forma asíncrona
+      parameters:
+      - description: 'Rol a sincronizar: ''Docente'' o ''Alumno'''
+        in: query
+        name: role
+        required: true
+        type: string
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Sincronización masiva de usuarios iniciada correctamente en
+            segundo plano
+          schema:
+            type: string
+        "400":
+          description: Rol inválido o no especificado
+          schema:
+            type: string
+      summary: Sincronización masiva de usuarios por rol
+      tags:
+      - Usuario
+  /usuario/by_group/{grupoID}:
+    get:
+      description: Recupera la lista de usuarios que pertenecen a un grupo específico
+      parameters:
+      - description: ID del grupo
+        in: path
+        name: grupoID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de usuarios del grupo
+          schema:
+            items:
+              $ref: '#/definitions/models.Usuario'
+            type: array
+        "400":
+          description: ID de Grupo inválido
+          schema:
+            type: string
+        "500":
+          description: Error al obtener usuarios por grupo
+          schema:
+            type: string
+      summary: Obtener usuarios por ID de grupo
+      tags:
+      - Usuario
+  /usuario/sync/{id}:
+    post:
+      description: Sincroniza un usuario local con Moodle de forma asíncrona
+      parameters:
+      - description: ID del usuario a sincronizar
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Sincronización del Usuario iniciada correctamente en segundo
+            plano
+          schema:
+            type: string
+        "400":
+          description: ID inválido
+          schema:
+            type: string
+      summary: Sincronizar usuario con Moodle
+      tags:
+      - Usuario
+  /usuario/unsynced:
+    get:
+      description: Recupera la lista de usuarios que aún no han sido sincronizados
+        con Moodle, filtrados por rol
+      parameters:
+      - description: 'Rol a filtrar: ''Docente'' o ''Alumno'''
+        in: query
+        name: role
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de usuarios no sincronizados
+          schema:
+            items:
+              $ref: '#/definitions/models.Usuario'
+            type: array
+        "400":
+          description: Rol no especificado o inválido
+          schema:
+            type: string
+        "500":
+          description: Error al obtener usuarios no sincronizados
+          schema:
+            type: string
+      summary: Obtener usuarios no sincronizados por rol
+      tags:
+      - Usuario
 swagger: "2.0"

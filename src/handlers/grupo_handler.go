@@ -233,4 +233,18 @@ func (h *GrupoHandler) AddMembersToGroup(w http.ResponseWriter, r *http.Request)
 	w.Write([]byte(fmt.Sprintf("Miembros añadidos localmente e iniciada sincronización a Moodle para Grupo ID %d.", grupoID)))
 }
 
+// BulkSyncGrupos maneja la sincronización masiva de grupos a Moodle. (POST /grupo/bulk-sync)
+// @Summary Sincronización masiva de Grupos
+// @Description Sincroniza todos los grupos que no tienen ID_Moodle a Moodle
+// @Tags grupo
+// @Success 200 {string} string
+// @Failure 500 {string} string
+// @Router /grupo/bulk-sync [post]
+func (h *GrupoHandler) BulkSyncGrupos(w http.ResponseWriter, r *http.Request) {
+	h.Service.BulkSyncToMoodle()
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Sincronización masiva de grupos iniciada correctamente en segundo plano."))
+}
+
 // ... (Aquí podrías añadir GetByID, GetAll, etc. si fueran necesarios)

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"api_concurrencia/src/models"
+
 	"gorm.io/gorm"
 )
 
@@ -20,14 +21,14 @@ func (r *UsuarioRepository) Create(u *models.Usuario) error {
 
 // GetByID obtiene un Usuario por ID local.
 func (r *UsuarioRepository) GetByID(id uint) (models.Usuario, error) {
-    var u models.Usuario
-    err := r.DB.
-        Preload("Matriculas.Asignatura"). 
-        Preload("Matriculas.Usuario"). 
+	var u models.Usuario
+	err := r.DB.
+		Preload("Matriculas.Asignatura").
+		Preload("Matriculas.Usuario").
 		Preload("Matriculas.Asignatura.Cuatrimestre").
 		Preload("Matriculas.Asignatura.Cuatrimestre.ProgramaEstudio").
-        First(&u, id).Error
-    return u, err
+		First(&u, id).Error
+	return u, err
 }
 
 func (r *UsuarioRepository) ExistsByUniqueFields(u *models.Usuario) (bool, error) {
@@ -38,7 +39,7 @@ func (r *UsuarioRepository) ExistsByUniqueFields(u *models.Usuario) (bool, error
 		Where("id <> ?", u.ID). // Ignora el registro actual en caso de ser una actualización
 		Where("username = ? OR email = ? OR matricula = ?", u.Username, u.Email, u.Matricula).
 		Count(&count).Error
-	
+
 	if err != nil {
 		return false, err
 	}
@@ -78,14 +79,23 @@ func (r *UsuarioRepository) GetUnsyncedByRole(role string) ([]models.Usuario, er
 	return usuarios, err
 }
 
-
 // GetByGroupID obtiene todos los Usuarios que pertenecen a un Grupo.
 func (r *UsuarioRepository) GetByGroupID(grupoID uint) ([]models.Usuario, error) {
-    var usuarios []models.Usuario
-    // Une implícitamente con la tabla de unión 'usuario_grupos'
-    err := r.DB.
-        Joins("JOIN usuario_grupos ug ON ug.usuario_id = usuarios.id").
-        Where("ug.grupo_id = ?", grupoID).
-        Find(&usuarios).Error
-    return usuarios, err
+	var usuarios []models.Usuario
+	// Une implícitamente con la tabla de unión 'usuario_grupos'
+	err := r.DB.
+		Joins("JOIN usuario_grupos ug ON ug.usuario_id = usuarios.id").
+		Where("ug.grupo_id = ?", grupoID).
+		Find(&usuarios).Error
+	return usuarios, err
+}
+
+// GetByUsername busca un usuario por su username
+func (r *UsuarioRepository) GetByUsername(username string) (*models.Usuario, error) {
+	var usuario models.Usuario
+	err := r.DB.Where("username = ?", username).First(&usuario).Error
+	if err != nil {
+		return nil, err
+	}
+	return &usuario, nil
 }

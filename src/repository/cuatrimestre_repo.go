@@ -2,6 +2,7 @@ package repository
 
 import (
 	"api_concurrencia/src/models"
+
 	"gorm.io/gorm"
 )
 
@@ -28,9 +29,9 @@ func (r *CuatrimestreRepository) GetAll() ([]models.Cuatrimestre, error) {
 // GetByID obtiene un Cuatrimestre por ID local.
 func (r *CuatrimestreRepository) GetByID(id uint) (models.Cuatrimestre, error) {
 	var cuatrimestre models.Cuatrimestre
-    // 👈 La precarga es crucial para obtener el ID_Moodle del padre
-    err := r.DB.Preload("ProgramaEstudio").First(&cuatrimestre, id).Error 
-    return cuatrimestre, err
+	// 👈 La precarga es crucial para obtener el ID_Moodle del padre
+	err := r.DB.Preload("ProgramaEstudio").First(&cuatrimestre, id).Error
+	return cuatrimestre, err
 }
 
 // Update actualiza un Cuatrimestre.
@@ -42,4 +43,11 @@ func (r *CuatrimestreRepository) Update(c *models.Cuatrimestre) error {
 func (r *CuatrimestreRepository) Delete(id uint) error {
 	// Nota: Se debe implementar la lógica de Moodle (si ya existe) y la verificación de hijos.
 	return r.DB.Delete(&models.Cuatrimestre{}, id).Error
+}
+
+// GetUnsynced obtiene todos los cuatrimestres que no tienen ID_Moodle
+func (r *CuatrimestreRepository) GetUnsynced() ([]models.Cuatrimestre, error) {
+	var cuatrimestres []models.Cuatrimestre
+	err := r.DB.Preload("ProgramaEstudio").Where("id_moodle IS NULL").Find(&cuatrimestres).Error
+	return cuatrimestres, err
 }

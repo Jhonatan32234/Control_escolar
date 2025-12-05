@@ -70,10 +70,10 @@ func (s *AsignaturaService) SyncToMoodle(id uint) error {
 		return fmt.Errorf("error: El Cuatrimestre padre (ID: %d) no ha sido sincronizado con Moodle (ID_Moodle es nulo)", asignatura.CuatrimestreID)
 	}
 
-	// Si ya tiene ID_Moodle, saltamos la creación (Asignatura/Curso ya creado)
-	if asignatura.ID_Moodle != nil { // 👈 VERIFICAMOS LA ASIGNATURA
-		log.Printf("Asignatura ID %d ya sincronizada (Moodle ID: %d). Saltando creación.", id, *asignatura.ID_Moodle)
-		return nil
+	// Si ya tiene ID_Moodle, actualizamos en lugar de crear
+	if asignatura.ID_Moodle != nil {
+		log.Printf("Asignatura ID %d ya sincronizada (Moodle ID: %d). Actualizando en Moodle.", id, *asignatura.ID_Moodle)
+		return s.UpdateInMoodle(&asignatura)
 	}
 
 	// 1. Construir el array de datos para la función de Moodle
@@ -147,4 +147,114 @@ func (s *AsignaturaService) validateAsignatura(a *models.Asignatura) error {
 		*a.Resumen = trimmed
 	}
 	return nil
+}
+
+// UpdateInMoodle actualiza una asignatura existente en Moodle
+func (s *AsignaturaService) UpdateInMoodle(a *models.Asignatura) error {
+	if a.ID_Moodle == nil {
+		return errors.New("la asignatura no tiene ID_Moodle, no se puede actualizar")
+	}
+
+	data := []moodle.CourseUpdateRequest{
+		{
+			ID:        uint(*a.ID_Moodle),
+			Fullname:  a.NombreCompleto,
+			Shortname: a.NombreCorto,
+			IDNumber:  safeString(a.ID_Externo),
+			Summary:   safeString(a.Resumen),
+		},
+	}
+
+	var response []moodle.CourseResponse
+	err := s.MoodleClient.Call("core_course_update_courses", data, &response)
+	if err != nil {
+		return fmt.Errorf("fallo al actualizar curso/asignatura en Moodle: %w", err)
+	}
+
+	log.Printf(" Asignatura '%s' (ID local: %d, Moodle ID: %d) actualizada exitosamente en Moodle", a.NombreCompleto, a.ID, *a.ID_Moodle)
+	return nil
+}
+
+// BulkSyncToMoodle sincroniza todas las asignaturas sin ID_Moodle a Moodle
+func (s *AsignaturaService) BulkSyncToMoodle() {
+	go func() {
+		log.Println(" Iniciando sincronización masiva de Asignaturas a Moodle...")
+
+		// Obtener todas las asignaturas sin ID_Moodle
+		asignaturas, err := s.Repo.GetUnsynced()
+		if err != nil {
+			log.Printf(" Error al obtener asignaturas sin sincronizar: %v", err)
+			return
+		}
+
+		if len(asignaturas) == 0 {
+			log.Println(" No hay asignaturas pendientes de sincronización")
+			return
+		}
+
+		log.Printf(" Encontradas %d asignaturas para sincronizar", len(asignaturas))
+
+		// Agrupar asignaturas por CuatrimestreID para sincronización eficiente
+		cuatrimestreGroups := make(map[uint][]models.Asignatura)
+		for _, asignatura := range asignaturas {
+			cuatrimestreGroups[asignatura.CuatrimestreID] = append(cuatrimestreGroups[asignatura.CuatrimestreID], asignatura)
+		}
+
+		successCount := 0
+		errorCount := 0
+
+		// Procesar cada grupo de asignaturas por cuatrimestre
+		for cuatrimestreID, group := range cuatrimestreGroups {
+			log.Printf(" Procesando %d asignaturas del Cuatrimestre ID: %d", len(group), cuatrimestreID)
+
+			// Validar que el cuatrimestre padre esté sincronizado
+			if group[0].Cuatrimestre.ID_Moodle == nil {
+				log.Printf("  Cuatrimestre ID %d no tiene ID_Moodle. Saltando %d asignaturas.", cuatrimestreID, len(group))
+				errorCount += len(group)
+				continue
+			}
+
+			// Construir array de CourseRequest para este grupo
+			data := make([]moodle.CourseRequest, len(group))
+			for i, asignatura := range group {
+				data[i] = moodle.CourseRequest{
+					Fullname:   asignatura.NombreCompleto,
+					Shortname:  asignatura.NombreCorto,
+					Categoryid: int(*asignatura.Cuatrimestre.ID_Moodle),
+					IDNumber:   safeString(asignatura.ID_Externo),
+					Summary:    safeString(asignatura.Resumen),
+				}
+			}
+
+			// Llamar a la API de Moodle para crear cursos en batch
+			var response []moodle.CourseResponse
+			err := s.MoodleClient.Call("core_course_create_courses", data, &response)
+			if err != nil {
+				log.Printf(" Error al crear cursos en Moodle para Cuatrimestre ID %d: %v", cuatrimestreID, err)
+				errorCount += len(group)
+				continue
+			}
+
+			// Actualizar ID_Moodle en la base de datos local
+			for i, asignatura := range group {
+				if i < len(response) {
+					moodleID := response[i].ID
+					asignatura.ID_Moodle = &moodleID
+
+					if err := s.Repo.Update(&asignatura); err != nil {
+						log.Printf(" Error al actualizar ID_Moodle para Asignatura ID %d: %v", asignatura.ID, err)
+						errorCount++
+					} else {
+						log.Printf(" Asignatura '%s' (ID local: %d) sincronizada con Moodle ID: %d", asignatura.NombreCompleto, asignatura.ID, moodleID)
+						successCount++
+					}
+				} else {
+					log.Printf(" No se recibió respuesta de Moodle para Asignatura ID %d", asignatura.ID)
+					errorCount++
+				}
+			}
+		}
+
+		log.Printf(" Sincronización masiva completada: %d exitosas, %d errores", successCount, errorCount)
+	}()
 }

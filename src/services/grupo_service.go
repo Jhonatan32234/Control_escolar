@@ -219,3 +219,108 @@ func (s *GrupoService) validateGrupo(g *models.Grupo) error {
 	// Description: sin límite estricto, normalizamos espacios
 	return nil
 }
+
+// UpdateInMoodle actualiza un grupo existente en Moodle (Nota: Moodle no tiene API para actualizar grupos directamente)
+// Esta función es placeholder para consistencia con otros servicios
+func (s *GrupoService) UpdateInMoodle(g *models.Grupo) error {
+	if g.ID_Moodle == nil {
+		return errors.New("el grupo no tiene ID_Moodle, no se puede actualizar")
+	}
+	log.Printf("Advertencia: Moodle no tiene API para actualizar grupos. Grupo '%s' (ID local: %d, Moodle ID: %d) no puede ser actualizado automáticamente.", g.Nombre, g.ID, *g.ID_Moodle)
+	return nil
+}
+
+// BulkSyncToMoodle sincroniza todos los grupos sin ID_Moodle a Moodle
+func (s *GrupoService) BulkSyncToMoodle() {
+	go func() {
+		log.Println("Iniciando sincronización masiva de Grupos a Moodle...")
+
+		// Obtener todos los grupos sin ID_Moodle
+		grupos, err := s.Repo.GetUnsynced()
+		if err != nil {
+			log.Printf("Error al obtener grupos sin sincronizar: %v", err)
+			return
+		}
+
+		if len(grupos) == 0 {
+			log.Println("No hay grupos pendientes de sincronización")
+			return
+		}
+
+		log.Printf("Encontrados %d grupos para sincronizar", len(grupos))
+		// Agrupar grupos por CourseID (Asignatura) para sincronización eficiente
+		courseGroups := make(map[uint][]models.Grupo)
+		for _, grupo := range grupos {
+			courseGroups[grupo.CourseID] = append(courseGroups[grupo.CourseID], grupo)
+		}
+
+		successCount := 0
+		errorCount := 0
+
+		// Procesar cada grupo de grupos por asignatura
+		for courseID, groupList := range courseGroups {
+			log.Printf("Procesando %d grupos para Asignatura ID: %d", len(groupList), courseID)
+
+			// Validar que la asignatura esté sincronizada
+			asignatura, err := s.AsignaturaRepo.GetByID(courseID)
+			if err != nil {
+				log.Printf("Asigantura ID %d no encontrada. Saltando %d grupos.", courseID, len(groupList))
+				errorCount += len(groupList)
+				continue
+			}
+
+			if asignatura.ID_Moodle == nil {
+				log.Printf("Asignatura ID %d no tiene ID_Moodle. Saltando %d grupos.", courseID, len(groupList))
+				errorCount += len(groupList)
+				continue
+			}
+
+			moodleCourseID := int(*asignatura.ID_Moodle)
+
+			// Construir array de GroupRequest para este curso
+			data := make([]moodle.GroupRequest, len(groupList))
+			for i, grupo := range groupList {
+				idNumber := fmt.Sprintf("G-%d-%s", grupo.ID, grupo.Nombre)
+				data[i] = moodle.GroupRequest{
+					CourseID:          moodleCourseID,
+					Name:              grupo.Nombre,
+					IDNumber:          idNumber,
+					Description:       grupo.Description,
+					DescriptionFormat: 1, // HTML
+					Visibility:        0, // Visible
+					Participation:     1, // Habilitado
+				}
+			}
+
+			// Llamar a la API de Moodle para crear grupos en batch
+			var response []moodle.GroupResponse
+			err = s.MoodleClient.Call("core_group_create_groups", data, &response)
+			if err != nil {
+				log.Printf("Error al crear grupos en Moodle para Asignatura ID %d: %v", courseID, err)
+				errorCount += len(groupList)
+				continue
+			}
+
+			// Actualizar ID_Moodle en la base de datos local
+			for i, grupo := range groupList {
+				if i < len(response) {
+					moodleID := uint(response[i].ID)
+					grupo.ID_Moodle = &moodleID
+
+					if err := s.Repo.DB.Save(&grupo).Error; err != nil {
+						log.Printf("Error al actualizar ID_Moodle para Grupo ID %d: %v", grupo.ID, err)
+						errorCount++
+					} else {
+						log.Printf("Grupo '%s' (ID local: %d) sincronizado con Moodle ID: %d", grupo.Nombre, grupo.ID, moodleID)
+						successCount++
+					}
+				} else {
+					log.Printf("No se recibió respuesta de Moodle para Grupo ID %d", grupo.ID)
+					errorCount++
+				}
+			}
+		}
+
+		log.Printf("Sincronización masiva completada: %d exitosas, %d errores", successCount, errorCount)
+	}()
+}

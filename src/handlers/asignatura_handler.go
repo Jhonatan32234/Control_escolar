@@ -173,3 +173,17 @@ func (h *AsignaturaHandler) SyncAsignatura(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Sincronización de la Asignatura iniciada correctamente en segundo plano."))
 }
+
+// BulkSyncAsignaturas maneja la sincronización masiva de asignaturas a Moodle. (POST /asignatura/bulk-sync)
+// @Summary Sincronización masiva de Asignaturas
+// @Description Sincroniza todas las asignaturas que no tienen ID_Moodle a Moodle
+// @Tags asignatura
+// @Success 200 {string} string
+// @Failure 500 {string} string
+// @Router /asignatura/bulk-sync [post]
+func (h *AsignaturaHandler) BulkSyncAsignaturas(w http.ResponseWriter, r *http.Request) {
+	h.Service.BulkSyncToMoodle()
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Sincronización masiva de asignaturas iniciada correctamente en segundo plano."))
+}
